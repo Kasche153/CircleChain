@@ -28,14 +28,18 @@ main_l7:
 global GroupSize
 int 1
 ==
-assert
 txna ApplicationArgs 0
 byte "Add"
 ==
+&&
 bnz main_l13
+global GroupSize
+int 1
+==
 txna ApplicationArgs 0
 byte "Deduct"
 ==
+&&
 bnz main_l10
 err
 main_l10:
