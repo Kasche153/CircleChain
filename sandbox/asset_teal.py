@@ -74,29 +74,22 @@ def approval_program():
 
     scratchCount = ScratchVar(TealType.uint64)
 
-    add = Seq([
-        scratchCount.store(App.globalGet(Bytes("Count"))),
-        App.globalPut(Bytes("Count"), scratchCount.load() + Int(1)),
-        Return(Int(1))
-    ])
-
-    deduct = Seq([
-        scratchCount.store(App.globalGet(Bytes("Count"))),
-        If(scratchCount.load() > Int(0),
-            App.globalPut(Bytes("Count"), scratchCount.load() - Int(1)),
-           ),
+    release_funds = Seq([
+        InnerTxnBuilder.Begin(),
+        InnerTxnBuilder.SetFields({
+            TxnField.type_enum: TxnType.Payment,
+            TxnField.amount: Int(5000),
+            TxnField.receiver: Addr(
+                "F2VKSSWABZXWZRKGCMTABTKLDIQG6NB47536L6NE6UKOZO4A2XFBOT5ETQ")
+        }),
+        InnerTxnBuilder.Submit(),
         Return(Int(1))
     ])
 
     handle_noop = Cond(
         [And(
             Global.group_size() == Int(1),
-            Txn.application_args[0] == Bytes("Add")
-        ), add],
-        [And(
-            Global.group_size() == Int(1),
-            Txn.application_args[0] == Bytes("Deduct")
-        ), deduct],
+        ), release_funds],
     )
 
     program = Cond(
@@ -231,6 +224,26 @@ def deploy_new_application(algod_client, creator_private_key):
     return app_id
 
 
+def payment_transaction(sender_mnomonic, amt, rcv, algod_client) -> dict:
+    params = algod_client.suggested_params()
+    add = mnemonic.to_public_key(sender_mnomonic)
+    key = mnemonic.to_private_key(sender_mnomonic)
+    unsigned_txn = transaction.PaymentTxn(add, params, rcv, amt)
+    signed = unsigned_txn.sign(key)
+    txid = algod_client.send_transaction(signed)
+
+    # wait for confirmation
+    try:
+        pmtx = transaction.wait_for_confirmation(algod_client, txid, 5)
+        print("TXID: ", txid)
+        print("Result confirmed in round: {}".format(pmtx['confirmed-round']))
+
+    except Exception as err:
+        print(err)
+        return
+    return pmtx
+
+
 def main():
     # initialize an algodClient
     algod_client = algod.AlgodClient(algod_token, algod_address)
@@ -240,6 +253,7 @@ def main():
 
     # deploy application to the chain for the first time (or get fixed app_id)
     app_id = deploy_new_application(algod_client, creator_private_key)
+    # app_id = 82222624
 
     # read global state of application
     print("Global state before calling application:",
@@ -250,9 +264,10 @@ def main():
     app_args = ["Add"]
     #app_args = ["Deduct"]
 
+    payment_transaction(sender_mnomonic=creator_mnemonic, algod_client=algod_client, amt=100000,
+                        rcv=logic.get_application_address(app_id))
     # calling application with arguments
     call_app(algod_client, creator_private_key, app_id, app_args)
-
     # read global state of application
     print("Global state after calling application:",
           read_global_state(algod_client, app_id))

@@ -182,16 +182,13 @@ def main():
     print("--------------------------------------------")
     print("Deploying Counter application......")
     print("--------------------------------------------")
-    print("Calling Counter application......")
-    app_args = ["Deduct"]
-    call_app(algod_client, creator_private_key, app_id, app_args)
-
-    # read global state of application
-    print("Global state:", read_global_state(algod_client, app_id))
 
     # create new application
     app_id = create_app(algod_client, creator_private_key, approval_program_compiled,
                         clear_state_program_compiled, global_schema, local_schema)
+
+    # read global state of application
+    print("Global state:", read_global_state(algod_client, app_id))
 
     # read global state of application
     # print("Global state:", read_global_state(algod_client, app_id))

@@ -2,23 +2,23 @@
 txn ApplicationID
 int 0
 ==
-bnz main_l18
+bnz main_l14
 txn OnCompletion
 int OptIn
 ==
-bnz main_l17
+bnz main_l13
 txn OnCompletion
 int CloseOut
 ==
-bnz main_l16
+bnz main_l12
 txn OnCompletion
 int UpdateApplication
 ==
-bnz main_l15
+bnz main_l11
 txn OnCompletion
 int DeleteApplication
 ==
-bnz main_l14
+bnz main_l10
 txn OnCompletion
 int NoOp
 ==
@@ -28,64 +28,31 @@ main_l7:
 global GroupSize
 int 1
 ==
-txna ApplicationArgs 0
-byte "Add"
-==
-&&
-bnz main_l13
-global GroupSize
-int 1
-==
-txna ApplicationArgs 0
-byte "Deduct"
-==
-&&
-bnz main_l10
+bnz main_l9
 err
-main_l10:
-byte "Count"
-app_global_get
-store 0
-load 0
-int 0
->
-bnz main_l12
-main_l11:
+main_l9:
+itxn_begin
+int pay
+itxn_field TypeEnum
+int 5000
+itxn_field Amount
+txna Accounts 1
+itxn_field Receiver
+itxn_submit
 int 1
+return
+main_l10:
+int 0
+return
+main_l11:
+int 0
 return
 main_l12:
-byte "Count"
-load 0
-int 1
--
-app_global_put
-b main_l11
+int 0
+return
 main_l13:
-byte "Count"
-app_global_get
-store 0
-byte "Count"
-load 0
-int 1
-+
-app_global_put
-int 1
+int 0
 return
 main_l14:
-int 0
-return
-main_l15:
-int 0
-return
-main_l16:
-int 0
-return
-main_l17:
-int 0
-return
-main_l18:
-byte "Count"
-int 0
-app_global_put
 int 1
 return
