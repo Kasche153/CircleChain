@@ -6,9 +6,9 @@ from algosdk.future.transaction import AssetConfigTxn, AssetTransferTxn, AssetFr
 from algosdk.future.transaction import *
 
 
-# mnemonic1 = "december giggle gown trap bread soccer sort song judge island lift black bitter ghost impulse rice actress because ribbon unusual negative lucky monster above used"
-# mnemonic2 = "welcome explain vast blind praise oak fire brush wreck jazz family sweet civil dynamic dance aim arrange bachelor flower earn brother pig giant absent digital"
-# mnemonic3 = "amused burger uphold hurt stereo holiday summer inherit believe angry token pledge chicken blush repeat patrol common hungry hello hammer humor ski coach above flight"
+mnemonic1 = "trust zoo tank romance staff quick search lonely drive neck light audit fringe rally width flock casino invite width odor gauge conduct dolphin absorb indoor"
+mnemonic2 = "welcome explain vast blind praise oak fire brush wreck jazz family sweet civil dynamic dance aim arrange bachelor flower earn brother pig giant absent digital"
+mnemonic3 = "amused burger uphold hurt stereo holiday summer inherit believe angry token pledge chicken blush repeat patrol common hungry hello hammer humor ski coach above flight"
 
 # accounts = {}
 # counter = 1
@@ -33,13 +33,13 @@ def create_asset(algod_client, creator_public_key, manager_public_key, creator_p
         sp=params,
         total=1,
         default_frozen=False,
-        unit_name="=3402",
-        asset_name="Testing FILIP",
-        manager=manager_public_key,
-        reserve=manager_public_key,
-        freeze=manager_public_key,
-        clawback=manager_public_key,
-        url="",
+        unit_name="HEJ",
+        asset_name="Hello Worlds",
+        manager=accounts[2]['pk'],
+        reserve=accounts[2]['pk'],
+        freeze=accounts[2]['pk'],
+        clawback=accounts[2]['pk'],
+        url="https://path/to/my/asset/details",
         decimals=0)
 
     # Sign with secret key of creator
@@ -109,7 +109,7 @@ def print_asset_holding(algodclient, account, assetid):
             break
 
 
-asset_id = 81978905
+asset_id = 82829986
 
 
 def opt_in(algod_client, opt_in_account, opt_in_private_key):
@@ -161,12 +161,12 @@ def send(algod_client, asset_sender, asset_reciver, sender_private_key):
     # params.fee = 1000
     # params.flat_fee = True
     txn = AssetTransferTxn(
-        sender=asset_sender,
+        sender='GAZ6PFO7GSEUJ43QAKWIPZNRD7OI2DSGOS5A5NTP6EPPY6RXSWMMIHCUAU',
         sp=params,
-        receiver=asset_reciver,
+        receiver='7O7A522ITYJIYTD2JKPZ6EGHOXMQG6WBK4WSIWXSWUPWF2K6326MUEFSWM',
         amt=1,
-        index=82829986)
-    stxn = txn.sign(sender_private_key)
+        index=asset_id)
+    stxn = txn.sign(accounts[1]['sk'])
     # Send the transaction to the network and retrieve the txid.
     try:
         txid = algod_client.send_transaction(stxn)
