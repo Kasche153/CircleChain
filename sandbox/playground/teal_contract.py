@@ -91,11 +91,12 @@ def approval_program():
     handle_noop = Cond(
         [And(
             Global.group_size() == Int(1),
-            Txn.application_args[0] == Bytes("Add")
+            Txn.application_args[0] == Bytes("Opt-in")
         ), add],
         [And(
             Global.group_size() == Int(1),
-            Txn.application_args[0] == Bytes("Deduct")
+            Txn.application_args[0] == Bytes("Release"),
+
         ), deduct],
     )
 

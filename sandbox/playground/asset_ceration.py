@@ -6,45 +6,44 @@ from algosdk.future.transaction import AssetConfigTxn, AssetTransferTxn, AssetFr
 from algosdk.future.transaction import *
 
 
-mnemonic1 = "december giggle gown trap bread soccer sort song judge island lift black bitter ghost impulse rice actress because ribbon unusual negative lucky monster above used"
-mnemonic2 = "welcome explain vast blind praise oak fire brush wreck jazz family sweet civil dynamic dance aim arrange bachelor flower earn brother pig giant absent digital"
-mnemonic3 = "amused burger uphold hurt stereo holiday summer inherit believe angry token pledge chicken blush repeat patrol common hungry hello hammer humor ski coach above flight"
+# mnemonic1 = "december giggle gown trap bread soccer sort song judge island lift black bitter ghost impulse rice actress because ribbon unusual negative lucky monster above used"
+# mnemonic2 = "welcome explain vast blind praise oak fire brush wreck jazz family sweet civil dynamic dance aim arrange bachelor flower earn brother pig giant absent digital"
+# mnemonic3 = "amused burger uphold hurt stereo holiday summer inherit believe angry token pledge chicken blush repeat patrol common hungry hello hammer humor ski coach above flight"
 
-accounts = {}
-counter = 1
-for m in [mnemonic1, mnemonic2, mnemonic3]:
-    accounts[counter] = {}
-    accounts[counter]['pk'] = mnemonic.to_public_key(m)
-    accounts[counter]['sk'] = mnemonic.to_private_key(m)
-    counter += 1
-
-
-algod_address = "http://localhost:4001"
-algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-algod_client = algod.AlgodClient(
-    algod_token=algod_token, algod_address=algod_address)
+# accounts = {}
+# counter = 1
+# for m in [mnemonic1, mnemonic2, mnemonic3]:
+#     accounts[counter] = {}
+#     accounts[counter]['pk'] = mnemonic.to_public_key(m)
+#     accounts[counter]['sk'] = mnemonic.to_private_key(m)
+#     counter += 1
 
 
-params = algod_client.suggested_params()
+# algod_address = "http://localhost:4001"
+# algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+# algod_client = algod.AlgodClient(
+#     algod_token=algod_token, algod_address=algod_address)
 
 
-def create_asset():
+def create_asset(algod_client, creator_public_key, manager_public_key, creator_private_key):
+    params = algod_client.suggested_params()
+
     txn = AssetConfigTxn(
-        sender=accounts[1]['pk'],
+        sender=creator_public_key,
         sp=params,
-        total=1000,
+        total=1,
         default_frozen=False,
-        unit_name="M0J",
-        asset_name="Mojtabas",
-        manager=accounts[2]['pk'],
-        reserve=accounts[2]['pk'],
-        freeze=accounts[2]['pk'],
-        clawback=accounts[2]['pk'],
-        url="https://path/to/my/asset/details",
+        unit_name="=3402",
+        asset_name="Testing FILIP",
+        manager=manager_public_key,
+        reserve=manager_public_key,
+        freeze=manager_public_key,
+        clawback=manager_public_key,
+        url="",
         decimals=0)
 
     # Sign with secret key of creator
-    stxn = txn.sign(accounts[1]['sk'])
+    stxn = txn.sign(creator_private_key)
 
     # Send the transaction to the network and retrieve the txid.
     try:
@@ -74,8 +73,8 @@ def create_asset():
         # Get the new asset's information from the creator account
         ptx = algod_client.pending_transaction_info(txid)
         asset_id = ptx["asset-index"]
-        print_created_asset(algod_client, accounts[1]['pk'], asset_id)
-        print_asset_holding(algod_client, accounts[1]['pk'], asset_id)
+        print_created_asset(algod_client, creator_public_key, asset_id)
+        print_asset_holding(algod_client, creator_public_key, asset_id)
     except Exception as e:
         print(e)
 
@@ -113,16 +112,10 @@ def print_asset_holding(algodclient, account, assetid):
 asset_id = 81978905
 
 
-def opt_in():
-    # OPT-IN
+def opt_in(algod_client, opt_in_account, opt_in_private_key):
+    params = algod_client.suggested_params()
 
-    # Check if asset_id is in account 3's asset holdings prior
-    # to opt-in
-    # comment these two lines if you want to use suggested params
-    # params.fee = 1000
-    # params.flat_fee = True
-
-    account_info = algod_client.account_info(accounts[3]['pk'])
+    account_info = algod_client.account_info(opt_in_account)
     holding = None
     idx = 0
     for my_account_info in account_info['assets']:
@@ -136,12 +129,12 @@ def opt_in():
 
         # Use the AssetTransferTxn class to transfer assets and opt-in
         txn = AssetTransferTxn(
-            sender=accounts[3]['pk'],
+            sender=opt_in_account,
             sp=params,
-            receiver=accounts[3]["pk"],
+            receiver=opt_in_account,
             amt=0,
             index=asset_id)
-        stxn = txn.sign(accounts[3]['sk'])
+        stxn = txn.sign(opt_in_private_key)
         # Send the transaction to the network and retrieve the txid.
         try:
             txid = algod_client.send_transaction(stxn)
@@ -156,24 +149,24 @@ def opt_in():
             print(err)
         # Now check the asset holding for that account.
         # This should now show a holding with a balance of 0.
-        print_asset_holding(algod_client, accounts[3]['pk'], asset_id)
+        print_asset_holding(algod_client, opt_in_account, asset_id)
 
 
-# create_asset()
+create_asset()
 
 
-def send():
+def send(algod_client, asset_sender, asset_reciver, sender_private_key):
     params = algod_client.suggested_params()
     # comment these two lines if you want to use suggested params
     # params.fee = 1000
     # params.flat_fee = True
     txn = AssetTransferTxn(
-        sender=accounts[1]['pk'],
+        sender=asset_sender,
         sp=params,
-        receiver=accounts[3]["pk"],
-        amt=10,
-        index=asset_id)
-    stxn = txn.sign(accounts[1]['sk'])
+        receiver=asset_reciver,
+        amt=1,
+        index=82829986)
+    stxn = txn.sign(sender_private_key)
     # Send the transaction to the network and retrieve the txid.
     try:
         txid = algod_client.send_transaction(stxn)
@@ -187,8 +180,4 @@ def send():
     except Exception as err:
         print(err)
     # The balance should now be 10.
-    print_asset_holding(algod_client, accounts[3]['pk'], asset_id)
-
-
-# opt_in()
-send()
+    print_asset_holding(algod_client, asset_reciver, asset_id)

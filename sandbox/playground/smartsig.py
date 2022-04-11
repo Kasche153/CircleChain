@@ -9,6 +9,8 @@ from pyteal import *
 # Only the benefactor account can withdraw from escrow account
 # trust.. = Account 1
 # bulk... = Account 2
+
+
 benefactor_mnemonic = "trust zoo tank romance staff quick search lonely drive neck light audit fringe rally width flock casino invite width odor gauge conduct dolphin absorb indoor"
 sender_mnemonic = "bulk voyage divorce this poem slam check razor glass recycle round lottery force bomb dune metal raccoon cube much curtain borrow ancient mass ability stone"
 
@@ -18,28 +20,34 @@ algod_address = "http://localhost:4001"
 algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 # helper function to compile program source
+
+
 def compile_smart_signature(client, source_code):
     compile_response = client.compile(source_code)
     return compile_response['result'], compile_response['hash']
 
 # helper function that converts a mnemonic passphrase into a private signing key
-def get_private_key_from_mnemonic(mn) :
+
+
+def get_private_key_from_mnemonic(mn):
     private_key = mnemonic.to_private_key(mn)
     return private_key
 
-def payment_transaction(creator_mnemonic, amt, rcv, algod_client)->dict:
+
+def payment_transaction(creator_mnemonic, amt, rcv, algod_client) -> dict:
     params = algod_client.suggested_params()
     add = mnemonic.to_public_key(creator_mnemonic)
     key = mnemonic.to_private_key(creator_mnemonic)
     unsigned_txn = transaction.PaymentTxn(add, params, rcv, amt)
     signed = unsigned_txn.sign(key)
-    txid = algod_client.send_transaction(signed)
-    pmtx = transaction.wait_for_confirmation(algod_client, txid , 5)
+    tx_id = algod_client.send_transaction(signed)
+    pmtx = transaction.wait_for_confirmation(algod_client, tx_id, 5)
     return pmtx
+
 
 def lsig_payment_txn(escrowProg, escrow_address, amt, rcv, algod_client):
     params = algod_client.suggested_params()
-    unsigned_txn = transaction.PaymentTxn(escrow_address, params, rcv, amt)
+    unsigned_txn = transaction.PaymentTxn(escrow_address, params, rcv, amt,)
     encodedProg = escrowProg.encode()
     program = base64.decodebytes(encodedProg)
     lsig = transaction.LogicSig(program)
@@ -48,12 +56,14 @@ def lsig_payment_txn(escrowProg, escrow_address, amt, rcv, algod_client):
     pmtx = transaction.wait_for_confirmation(algod_client, tx_id, 10)
     return pmtx
 
+
 """Basic Donation Escrow"""
+
 
 def donation_escrow(benefactor):
     Fee = Int(1000)
 
-    #Only the benefactor account can withdraw from this escrow
+    # Only the benefactor account can withdraw from this escrow
     program = And(
         Txn.type_enum() == TxnType.Payment,
         Txn.fee() <= Fee,
@@ -65,18 +75,21 @@ def donation_escrow(benefactor):
     # Mode.Signature specifies that this is a smart signature
     return compileTeal(program, Mode.Signature, version=5)
 
-def main() :
+
+def main():
     # initialize an algodClient
     algod_client = algod.AlgodClient(algod_token, algod_address)
 
-    # define private keys
+    # define public keys
+    benefactor_public_key = mnemonic.to_public_key(benefactor_mnemonic)
     receiver_public_key = mnemonic.to_public_key(benefactor_mnemonic)
 
     print("--------------------------------------------")
     print("Compiling Donation Smart Signature......")
 
-    stateless_program_teal = donation_escrow(receiver_public_key)
-    escrow_result, escrow_address= compile_smart_signature(algod_client, stateless_program_teal)
+    stateless_program_teal = donation_escrow(benefactor_public_key)
+    escrow_result, escrow_address = compile_smart_signature(
+        algod_client, stateless_program_teal)
 
     print("Program:", escrow_result)
     print("hash: ", escrow_address)
@@ -84,6 +97,7 @@ def main() :
     print("--------------------------------------------")
     print("Activating Donation Smart Signature......")
 
+    # This should become AssetFunding from computer_company
     # Activate escrow contract by sending 2 algo and 1000 microalgo for transaction fee from creator
     amt = 2001000
     payment_transaction(sender_mnemonic, amt, escrow_address, algod_client)
@@ -91,8 +105,10 @@ def main() :
     print("--------------------------------------------")
     print("Withdraw from Donation Smart Signature......")
 
-    # Withdraws 1 ALGO from smart signature using logic signature.
+    # This should become asset transer to Recycler
     withdrawal_amt = 1000000
-    lsig_payment_txn(escrow_result, escrow_address, withdrawal_amt, receiver_public_key, algod_client)
+    lsig_payment_txn(escrow_result, escrow_address,
+                     withdrawal_amt, receiver_public_key, algod_client)
+
 
 main()
