@@ -99,6 +99,7 @@ def approval_program():
         ), deduct],
     )
 
+    # default transaction sub-types for application
     program = Cond(
         [Txn.application_id() == Int(0), on_creation],
         [Txn.on_completion() == OnComplete.OptIn, handle_optin],
@@ -224,9 +225,8 @@ def deploy_new_application(algod_client, creator_private_key):
     print("Deploying Counter application......")
 
     # create new application on the blockchain
-    app_id = create_app(algod_client, creator_private_key, approval_program_compiled,
-                        clear_state_program_compiled, global_schema, local_schema)
-    # app_id = 82012418
+    app_id = create_app(algod_client, creator_private_key, approval_program_compiled, clear_state_program_compiled, global_schema, local_schema)
+    
 
     return app_id
 
@@ -239,7 +239,8 @@ def main():
     creator_private_key = get_private_key_from_mnemonic(creator_mnemonic)
 
     # deploy application to the chain for the first time (or get fixed app_id)
-    app_id = deploy_new_application(algod_client, creator_private_key)
+    #app_id = deploy_new_application(algod_client, creator_private_key)
+    app_id = 82012418
 
     # read global state of application
     print("Global state before calling application:",

@@ -1,4 +1,5 @@
 import base64
+from http.client import OK
 
 from algosdk.future import transaction
 from algosdk import mnemonic
@@ -7,8 +8,8 @@ from pyteal import *
 
 # user declared account mnemonics
 # Only the benefactor account can withdraw from escrow account
-# trust.. = Account 1
-# bulk... = Account 2
+# trust.. GAZ.... = Account 1
+# bulk... 2I4.... = Account 2
 benefactor_mnemonic = "trust zoo tank romance staff quick search lonely drive neck light audit fringe rally width flock casino invite width odor gauge conduct dolphin absorb indoor"
 sender_mnemonic = "bulk voyage divorce this poem slam check razor glass recycle round lottery force bomb dune metal raccoon cube much curtain borrow ancient mass ability stone"
 
@@ -27,14 +28,26 @@ def get_private_key_from_mnemonic(mn) :
     private_key = mnemonic.to_private_key(mn)
     return private_key
 
-def payment_transaction(creator_mnemonic, amt, rcv, algod_client)->dict:
+
+def opt_in(escrowProg, escrow_address, assetid, algod_client):
+    params = algod_client.suggested_params()
+    unsigned_txn = transaction.AssetOptInTxn(escrow_address, params, assetid)
+    encodedProg = escrowProg.encode()
+    program = base64.decodebytes(encodedProg)
+    lsig = transaction.LogicSig(program)
+    stxn = transaction.LogicSigTransaction(unsigned_txn, lsig)
+    tx_id = algod_client.send_transaction(stxn)
+    pmtx = transaction.wait_for_confirmation(algod_client, tx_id, 10)
+    return pmtx
+
+def asset_transaction(creator_mnemonic, amt, rcv, algod_client)->dict:
     params = algod_client.suggested_params()
     add = mnemonic.to_public_key(creator_mnemonic)
     key = mnemonic.to_private_key(creator_mnemonic)
-    unsigned_txn = transaction.PaymentTxn(add, params, rcv, amt)
+    unsigned_txn = transaction.AssetTransferTxn(add, params, rcv, algod_client)
     signed = unsigned_txn.sign(key)
-    txid = algod_client.send_transaction(signed)
-    pmtx = transaction.wait_for_confirmation(algod_client, txid , 5)
+    tx_id = algod_client.send_transaction(signed)
+    pmtx = transaction.wait_for_confirmation(algod_client, tx_id , 5)
     return pmtx
 
 def lsig_payment_txn(escrowProg, escrow_address, amt, rcv, algod_client):
@@ -85,14 +98,16 @@ def main() :
     print("Activating Donation Smart Signature......")
 
     # Activate escrow contract by sending 2 algo and 1000 microalgo for transaction fee from creator
-    amt = 2001000
-    payment_transaction(sender_mnemonic, amt, escrow_address, algod_client)
+    amt = 201000
+    assetid = 82829986
+    opt_in(escrow_result, escrow_address, assetid, algod_client)
+    asset_transaction(sender_mnemonic, amt, escrow_address, algod_client)
 
     print("--------------------------------------------")
     print("Withdraw from Donation Smart Signature......")
 
     # Withdraws 1 ALGO from smart signature using logic signature.
-    withdrawal_amt = 1000000
+    withdrawal_amt = 100000
     lsig_payment_txn(escrow_result, escrow_address, withdrawal_amt, receiver_public_key, algod_client)
 
 main()
