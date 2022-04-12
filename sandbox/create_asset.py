@@ -3,6 +3,9 @@ from algosdk.v2client import algod
 from utils import create_asset, opt_in, send_asset
 
 
+# SCRIPT TO GENERATE AN NFT AND LET ACCOUNTS OPT IN TO NFT AND CREATOR TO SEND NFT
+
+
 auth_mnemonic = "december giggle gown trap bread soccer sort song judge island lift black bitter ghost impulse rice actress because ribbon unusual negative lucky monster above used"
 computer_mnemonic = "amused burger uphold hurt stereo holiday summer inherit believe angry token pledge chicken blush repeat patrol common hungry hello hammer humor ski coach above flight"
 recycler_mnemonic = "welcome explain vast blind praise oak fire brush wreck jazz family sweet civil dynamic dance aim arrange bachelor flower earn brother pig giant absent digital"
@@ -22,7 +25,7 @@ def main():
     algod_client = algod.AlgodClient(
         algod_token=algod_token, algod_address=algod_address)
 
-    # Creating an NFT asset
+    # Creating an NFT asset NOTE the fixed arguments for unit_name supply and asset_name change supple for FT instead of NFT
     asset_id = create_asset(asset_name="Testing utils", manager_public_key=auth_pk, algod_client=algod_client,
                             creator_public_key=auth_pk, creator_private_key=auth_sk, unit_name="plop2", total_supply=1)
 

@@ -1,7 +1,11 @@
 import base64
 import json
+from algosdk.future import transaction
+from algosdk.future.transaction import PaymentTxn, AssetConfigTxn, AssetTransferTxn
 from algosdk import mnemonic, account
-from algosdk.future.transaction import *
+
+
+###UTIL FUNCTIONS for creating accounts, transaction, payments, etc
 
 
 def generate_algorand_keypair():
@@ -14,10 +18,12 @@ def generate_algorand_keypair():
 
 
 def algo_transaction(sender_mnemonic, amount, reciver, algod_client) -> dict:
+
     params = algod_client.suggested_params()
     add = mnemonic.to_public_key(sender_mnemonic)
     key = mnemonic.to_private_key(sender_mnemonic)
-    unsigned_txn = transaction.PaymentTxn(add, params, reciver, amount)
+    unsigned_txn = PaymentTxn(
+        add, params, reciver, amount)
     signed = unsigned_txn.sign(key)
     tx_id = algod_client.send_transaction(signed)
     pmtx = transaction.wait_for_confirmation(algod_client, tx_id, 5)
@@ -139,7 +145,8 @@ def create_asset(algod_client, creator_public_key, manager_public_key, creator_p
         txid = algod_client.send_transaction(stxn)
         print("Signed transaction with txID: {}".format(txid))
         # Wait for the transaction to be confirmed
-        confirmed_txn = wait_for_confirmation(algod_client, txid, 4)
+        confirmed_txn = transaction.wait_for_confirmation(
+            algod_client, txid, 4)
         print("TXID: ", txid)
         print("Result confirmed in round: {}".format(
             confirmed_txn['confirmed-round']))
@@ -215,7 +222,7 @@ def opt_in(algod_client, opt_in_account, opt_in_private_key, asset_id):
     if not holding:
 
         # Use the AssetTransferTxn class to transfer assets and opt-in
-        txn = AssetTransferTxn(
+        txn = transaction.AssetTransferTxn(
             sender=opt_in_account,
             sp=params,
             receiver=opt_in_account,
@@ -227,7 +234,8 @@ def opt_in(algod_client, opt_in_account, opt_in_private_key, asset_id):
             txid = algod_client.send_transaction(stxn)
             print("Signed transaction with txID: {}".format(txid))
             # Wait for the transaction to be confirmed
-            confirmed_txn = wait_for_confirmation(algod_client, txid, 4)
+            confirmed_txn = transaction.wait_for_confirmation(
+                algod_client, txid, 4)
             print("TXID: ", txid)
             print("Result confirmed in round: {}".format(
                 confirmed_txn['confirmed-round']))
@@ -241,9 +249,7 @@ def opt_in(algod_client, opt_in_account, opt_in_private_key, asset_id):
 
 def send_asset(algod_client, asset_id, asset_sender, asset_reciver, sender_private_key):
     params = algod_client.suggested_params()
-    # comment these two lines if you want to use suggested params
-    # params.fee = 1000
-    # params.flat_fee = True
+
     txn = AssetTransferTxn(
         sender=asset_sender,
         sp=params,
@@ -256,12 +262,13 @@ def send_asset(algod_client, asset_id, asset_sender, asset_reciver, sender_priva
         txid = algod_client.send_transaction(stxn)
         print("Signed transaction with txID: {}".format(txid))
         # Wait for the transaction to be confirmed
-        confirmed_txn = wait_for_confirmation(algod_client, txid, 4)
+        confirmed_txn = transaction.wait_for_confirmation(
+            algod_client, txid, 4)
         print("TXID: ", txid)
         print("Result confirmed in round: {}".format(
             confirmed_txn['confirmed-round']))
 
     except Exception as err:
         print(err)
-    # The balance should now be 10.
+
     print_asset_holding(algod_client, asset_reciver, asset_id)
