@@ -67,11 +67,11 @@ def escrow_account_opt_in(escrowProg, escrow_address, asset_id, algod_client):
         return
     return pmtx
 
-def regular_account_opt_in(rcv, asset_id, algod_client)->dict:
+def regular_account_opt_in(rcv_mnemonic, asset_id, algod_client)->dict:
     params = algod_client.suggested_params()
-    #add = mnemonic.to_public_key(sender_mnemonic)
-    key = mnemonic.to_private_key(sender_mnemonic)
-    unsigned_txn = transaction.AssetOptInTxn(rcv, params, asset_id)
+    add = mnemonic.to_public_key(rcv_mnemonic)
+    key = mnemonic.to_private_key(rcv_mnemonic)
+    unsigned_txn = transaction.AssetOptInTxn(add, params, asset_id)
     signed = unsigned_txn.sign(key)
     tx_id = algod_client.send_transaction(signed)
     
@@ -92,7 +92,7 @@ def to_escrow_asset_txn(sender_mnemonic, asset_id, rcv, algod_client)->dict:
     params = algod_client.suggested_params()
     add = mnemonic.to_public_key(sender_mnemonic)
     key = mnemonic.to_private_key(sender_mnemonic)
-    unsigned_txn = transaction.AssetTransferTxn(add, params, rcv, 1, asset_id, algod_client)
+    unsigned_txn = transaction.AssetTransferTxn(add, params, rcv, 1, asset_id)
     signed = unsigned_txn.sign(key)
     tx_id = algod_client.send_transaction(signed)
     
@@ -110,7 +110,7 @@ def to_escrow_asset_txn(sender_mnemonic, asset_id, rcv, algod_client)->dict:
 
 def lsig_asset_txn(escrowProg, escrow_address, asset_id, rcv, algod_client):
     params = algod_client.suggested_params()
-    unsigned_txn = transaction.AssetTransferTxn(escrow_address, params, rcv, 1, asset_id, algod_client)
+    unsigned_txn = transaction.AssetTransferTxn(escrow_address, params, rcv, 1, asset_id)
     encodedProg = escrowProg.encode()
     program = base64.decodebytes(encodedProg)
     lsig = transaction.LogicSig(program)
@@ -157,20 +157,43 @@ def main():
     escrow_result, escrow_address = compile_smart_signature(
         algod_client, stateless_program_teal)
 
+    print("--------------------------------------------")
+    print("Escrow details:")
     print("Program:", escrow_result)
     print("hash: ", escrow_address)
+    
 
-    # Fund escrow to pay for tx fee (so escrow "afford" opting in)
+    asset_id = 83658033
+
+
+    """ Fund escrow to pay for tx fee (so escrow "afford" opting in) """
+    print("--------------------------------------------")
+    print("Funding escrow account")
     amt = 201000
     fund_escrow_txn(sender_mnemonic, amt, escrow_address, algod_client)
 
-    # Activate escrow contract by sending 1 ASA and 1000 microalgo for transaction fee from sender
-    asset_id = 83616921
+    
+    """ Activate escrow contract by sending 1 ASA and 1000 microalgo for transaction fee from sender"""
+    print("--------------------------------------------")
+    print("Opting in escrow account")
     escrow_account_opt_in(escrow_result, escrow_address, asset_id, algod_client)
+
+
+    """ Transfering asset from sender to escrow """
+    print("--------------------------------------------")
+    print("Sending asset to escrow")
     to_escrow_asset_txn(sender_mnemonic, asset_id, escrow_address, algod_client)
 
-    # Withdraws 1 ASA from smart signature using logic signature.
-    regular_account_opt_in(benefactor_public_key, asset_id, algod_client)
+
+    """ Opting in receving account """
+    print("--------------------------------------------")
+    print("Opting in receiving account")
+    regular_account_opt_in(benefactor_mnemonic, asset_id, algod_client)
+
+
+    """ Benefactor withdrawing 1 ASA from smart signature using logic signature. """
+    print("--------------------------------------------")
+    print("Sending asset from escrow")
     lsig_asset_txn(escrow_result, escrow_address, asset_id, benefactor_public_key, algod_client)
 
 main()
