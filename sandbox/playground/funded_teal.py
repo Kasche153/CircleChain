@@ -57,12 +57,12 @@ def payment_transaction(creator_mnemonic, amt, rcv, algod_client) -> dict:
     key = mnemonic.to_private_key(creator_mnemonic)
     unsigned_txn = transaction.PaymentTxn(add, params, rcv, amt)
     signed = unsigned_txn.sign(key)
-    txid = algod_client.send_transaction(signed)
+    tx_id = algod_client.send_transaction(signed)
 
     # wait for confirmation
     try:
-        pmtx = transaction.wait_for_confirmation(algod_client, txid, 5)
-        print("TXID: ", txid)
+        pmtx = transaction.wait_for_confirmation(algod_client, tx_id, 5)
+        print("TXID: ", tx_id)
         print("Result confirmed in round: {}".format(pmtx['confirmed-round']))
 
     except Exception as err:
@@ -79,7 +79,15 @@ def lsig_payment_txn(escrowProg, escrow_address, amt, rcv, algod_client):
     lsig = transaction.LogicSig(program)
     stxn = transaction.LogicSigTransaction(unsigned_txn, lsig)
     tx_id = algod_client.send_transaction(stxn)
-    pmtx = transaction.wait_for_confirmation(algod_client, tx_id, 10)
+    # wait for confirmation
+    try:
+        pmtx = transaction.wait_for_confirmation(algod_client, tx_id, 5)
+        print("TXID: ", tx_id)
+        print("Result confirmed in round: {}".format(pmtx['confirmed-round']))
+
+    except Exception as err:
+        print(err)
+        return
     return pmtx
 
 
