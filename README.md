@@ -1,5 +1,15 @@
 # Algorand Sandbox
 
+## Our impelementation
+
+The following (or some of them) could be part of the future work of thesis:
+
+- Think of an structured way to destroy the assets
+
+- Think of a way to create NFTs from manufacturer-supplied meaningful ids.
+
+- Is it possible to parallelize the asset opt-in procedure?
+
 This is a fast way to create and configure an Algorand development environment with [Algod](https://github.com/algorand/go-algorand) and [Indexer](https://github.com/algorand/indexer).
 
 **Docker Compose** _MUST_ be installed. [Instructions](https://docs.docker.com/compose/install/).
