@@ -5,7 +5,7 @@ from algosdk.future.transaction import PaymentTxn, AssetConfigTxn, AssetTransfer
 from algosdk import mnemonic, account
 
 
-###UTIL FUNCTIONS for creating accounts, transaction, payments, etc
+# UTIL FUNCTIONS for creating accounts, transaction, payments, etc
 
 
 def generate_algorand_keypair():
@@ -17,11 +17,9 @@ def generate_algorand_keypair():
 # FUNDING OF ACCOUNTS IS ALSO POSSIBLE WITH THE TEST_NET_FAUCET
 
 
-def algo_transaction(sender_mnemonic, amount, reciver, algod_client) -> dict:
+def algo_transaction(add, key, amount, reciver, algod_client) -> dict:
 
     params = algod_client.suggested_params()
-    add = mnemonic.to_public_key(sender_mnemonic)
-    key = mnemonic.to_private_key(sender_mnemonic)
     unsigned_txn = PaymentTxn(
         add, params, reciver, amount)
     signed = unsigned_txn.sign(key)

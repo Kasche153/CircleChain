@@ -7,11 +7,6 @@ from algosdk.v2client import algod
 from pyteal import *
 from utils import algo_transaction
 
-# user declared account mnemonics
-# Only the benefactor account can withdraw from escrow account
-# trust.. = Account 1
-# bulk... = Account 2
-
 
 auth_mnemonic = "december giggle gown trap bread soccer sort song judge island lift black bitter ghost impulse rice actress because ribbon unusual negative lucky monster above used"
 computer_mnemonic = "amused burger uphold hurt stereo holiday summer inherit believe angry token pledge chicken blush repeat patrol common hungry hello hammer humor ski coach above flight"

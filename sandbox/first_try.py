@@ -69,7 +69,7 @@ def lsig_payment_txn(escrowProg, escrow_address, algod_client, assetId):
 # and releases if and only if the reciver is the recyler
 
 
-def recyling_escrow(recycler_address, nfts):
+def recyling_escrow(recycler_addresses):
     Fee = Int(1000)
 
     # Only the benefactor account can withdraw from this escrow
@@ -80,12 +80,14 @@ def recyling_escrow(recycler_address, nfts):
     #     Txn.receiver() == Addr(recycler_address),
     #     Global.group_size() == Int(1),
     #     Txn.rekey_to() == Global.zero_address()
-    # )
+    # # )
+
+    release_clause = Or(Txn.accounts[0] == Addr(recycler_addresses[0]))
 
     opt_in = And(
         Txn.type_enum() == TxnType.AssetTransfer,
         Txn.fee() <= Fee,
-        Txn.receiver() == Txn.asset_sender(),
+        release_clause,
         Global.group_size() == Int(1),
         Txn.rekey_to() == Global.zero_address()
     )
@@ -121,18 +123,18 @@ def main():
     print("--------------------------------------------")
     print("Activating Donation Smart Signature......")
 
-    # This should become AssetFunding from computer_company
-    # Activate escrow contract by sending 2 algo and 1000 microalgo for transaction fee from creator
-    amt = 2001000
-    payment_transaction(computer_mnemonic, amt, escrow_address, algod_client)
+    # # This should become AssetFunding from computer_company
+    # # Activate escrow contract by sending 2 algo and 1000 microalgo for transaction fee from creator
+    # amt = 2001000
+    # payment_transaction(computer_mnemonic, amt, escrow_address, algod_client)
 
-    # print("--------------------------------------------")
-    # print("Withdraw from Donation Smart Signature......")
+    # # print("--------------------------------------------")
+    # # print("Withdraw from Donation Smart Signature......")
 
-    # This should become asset transer to Recycler
-    withdrawal_amt = 0.1
-    lsig_payment_txn(escrow_result, escrow_address,
-                     withdrawal_amt, recycler_pk, algod_client)
+    # # This should become asset transer to Recycler
+    # withdrawal_amt = 0.1
+    # lsig_payment_txn(escrow_result, escrow_address,
+    #                  withdrawal_amt, recycler_pk, algod_client)
 
 
 main()

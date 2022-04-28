@@ -1,24 +1,24 @@
-#pragma version 5
+#pragma version 6
 txn ApplicationID
 int 0
 ==
-bnz main_l18
+bnz main_l21
 txn OnCompletion
 int OptIn
 ==
-bnz main_l17
+bnz main_l20
 txn OnCompletion
 int CloseOut
 ==
-bnz main_l16
+bnz main_l19
 txn OnCompletion
 int UpdateApplication
 ==
-bnz main_l15
+bnz main_l18
 txn OnCompletion
 int DeleteApplication
 ==
-bnz main_l14
+bnz main_l17
 txn OnCompletion
 int NoOp
 ==
@@ -29,7 +29,7 @@ global GroupSize
 int 1
 ==
 txna ApplicationArgs 0
-byte "Add"
+byte "Init"
 ==
 &&
 bnz main_l13
@@ -37,55 +37,135 @@ global GroupSize
 int 1
 ==
 txna ApplicationArgs 0
-byte "Deduct"
+byte "Release"
 ==
 &&
-bnz main_l10
-err
-main_l10:
-byte "Count"
+byte "Recycler1"
 app_global_get
-store 0
-load 0
-int 0
->
+txna Accounts 2
+==
+byte "Recycler2"
+app_global_get
+txna Accounts 2
+==
+||
+byte "Recycler3"
+app_global_get
+txna Accounts 2
+==
+||
+byte "Recycler4"
+app_global_get
+txna Accounts 2
+==
+||
+byte "Recycler5"
+app_global_get
+txna Accounts 2
+==
+||
+&&
+txn Sender
+byte "User"
+app_global_get
+==
+&&
 bnz main_l12
+global GroupSize
+int 1
+==
+byte "User"
+app_global_get
+global ZeroAddress
+==
+&&
+txna ApplicationArgs 0
+byte "Set user"
+==
+&&
+bnz main_l11
+err
 main_l11:
+byte "User"
+txna Accounts 1
+app_global_put
 int 1
 return
 main_l12:
-byte "Count"
-load 0
+itxn_begin
+int pay
+itxn_field TypeEnum
+int 0
+itxn_field Amount
+txna Accounts 0
+itxn_field Receiver
+txna Accounts 2
+itxn_field RekeyTo
+itxn_submit
 int 1
--
-app_global_put
-b main_l11
+return
 main_l13:
-byte "Count"
-app_global_get
+int 0
 store 0
-byte "Count"
+main_l14:
+load 0
+txn NumAssets
+<
+bnz main_l16
+int 1
+return
+main_l16:
+callsub optin_0
 load 0
 int 1
 +
-app_global_put
-int 1
-return
-main_l14:
-int 0
-return
-main_l15:
-int 0
-return
-main_l16:
-int 0
-return
+store 0
+b main_l14
 main_l17:
 int 0
 return
 main_l18:
-byte "Count"
 int 0
+return
+main_l19:
+int 0
+return
+main_l20:
+int 0
+return
+main_l21:
+byte "User"
+global ZeroAddress
+app_global_put
+byte "Recycler1"
+addr F2VKSSWABZXWZRKGCMTABTKLDIQG6NB47536L6NE6UKOZO4A2XFBOT5ETQ
+app_global_put
+byte "Recycler2"
+addr F2VKSSWABZXWZRKGCMTABTKLDIQG6NB47536L6NE6UKOZO4A2XFBOT5ETQ
+app_global_put
+byte "Recycler3"
+addr F2VKSSWABZXWZRKGCMTABTKLDIQG6NB47536L6NE6UKOZO4A2XFBOT5ETQ
+app_global_put
+byte "Recycler4"
+addr F2VKSSWABZXWZRKGCMTABTKLDIQG6NB47536L6NE6UKOZO4A2XFBOT5ETQ
+app_global_put
+byte "Recycler5"
+addr F2VKSSWABZXWZRKGCMTABTKLDIQG6NB47536L6NE6UKOZO4A2XFBOT5ETQ
 app_global_put
 int 1
 return
+
+// opt_in
+optin_0:
+itxn_begin
+int axfer
+itxn_field TypeEnum
+global CurrentApplicationAddress
+itxn_field AssetReceiver
+int 0
+itxn_field AssetAmount
+load 0
+txnas Assets
+itxn_field XferAsset
+itxn_submit
+retsub

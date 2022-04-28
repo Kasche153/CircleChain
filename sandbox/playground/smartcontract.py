@@ -226,8 +226,8 @@ def deploy_new_application(algod_client, creator_private_key):
     print("Deploying Counter application......")
 
     # create new application on the blockchain
-    app_id = create_app(algod_client, creator_private_key, approval_program_compiled, clear_state_program_compiled, global_schema, local_schema)
-    
+    app_id = create_app(algod_client, creator_private_key, approval_program_compiled,
+                        clear_state_program_compiled, global_schema, local_schema)
 
     return app_id
 
