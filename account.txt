@@ -1,13 +1,18 @@
+Computer company
+
 My address: LAHHYGHUKX56IFSR6DCNKTXFTYYBYTMDTGBZH6QJHANTGKVAA7YP24VCV4
 My private key: xXlYynS+DTfzOc/Fm90Cb2ELhkUuuRbwBHLl/skS6pFYDnwY9FX75BZR8MTVTuWeMBxNg5mDk/oJOBszKqAH8A==
 My passphrase: december giggle gown trap bread soccer sort song judge island lift black bitter ghost impulse rice actress because ribbon unusual negative lucky monster above used
 
 
+User
 
 My address: 4S3LPNMZEHTJHPK7DJXHTV2UAQ4C2347IOTYPEMZVKYO2OECPYC7HKCJYE
 My private key: QaiH3f3GarMl23OlOMLHadoTYtQ2oXPRm9WIhjcpl4Xktre1mSHmk71fGm5511QEOC1vn0Onh5GZqrDtOIJ+BQ==
 My passphrase: amused burger uphold hurt stereo holiday summer inherit believe angry token pledge chicken blush repeat patrol common hungry hello hammer humor ski coach above flight
 
+
+Recycler
 
 My address: F2VKSSWABZXWZRKGCMTABTKLDIQG6NB47536L6NE6UKOZO4A2XFBOT5ETQ
 My private key: yidU433BVF/mKh3x3x2lus0UE+lGBWJIBLNUdA6SNqwuqqlKwA5vbMVGEyYAzUsaIG80PP935fmk9RTsu4DVyg==
