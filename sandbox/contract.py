@@ -12,16 +12,18 @@ from pyteal import *
 algod_address = "http://localhost:4001"
 algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-
+auth_mnemonic = "entry purity immense regular crane shiver across trumpet only soup leave monster agent biology border inherit engine cactus gate chalk beef tank resist able napkin"
 computer_mnemonic = "december giggle gown trap bread soccer sort song judge island lift black bitter ghost impulse rice actress because ribbon unusual negative lucky monster above used"
 user_mnemonic = "amused burger uphold hurt stereo holiday summer inherit believe angry token pledge chicken blush repeat patrol common hungry hello hammer humor ski coach above flight"
 recycler_mnemonic = "welcome explain vast blind praise oak fire brush wreck jazz family sweet civil dynamic dance aim arrange bachelor flower earn brother pig giant absent digital"
 
+
+auth_add = mnemonic.to_public_key(auth_mnemonic)
 computer_add = mnemonic.to_public_key(computer_mnemonic)
 user_add = mnemonic.to_public_key(user_mnemonic)
 recycler_add = mnemonic.to_public_key(recycler_mnemonic)
 
-
+auth_key = mnemonic.to_private_key(auth_mnemonic)
 computer_key = mnemonic.to_private_key(computer_mnemonic)
 user_key = mnemonic.to_private_key(user_mnemonic)
 recycler_key = mnemonic.to_private_key(recycler_mnemonic)
@@ -45,10 +47,6 @@ def approval_program(recyclers):
     handle_updateapp = Return(Int(0))
 
     handle_deleteapp = Return(Int(0))
-
-    scratchCount = ScratchVar(TealType.uint64)
-
-    handle_noop = Return(Int(1))
 
     @ Subroutine(TealType.none)
     def opt_in():
@@ -112,7 +110,6 @@ def approval_program(recyclers):
         ), set_user],
     )
 
-    # default transaction sub-types for application
     program = Cond(
         [Txn.application_id() == Int(0), on_creation],
         [Txn.on_completion() == OnComplete.OptIn, handle_optin],
@@ -127,7 +124,7 @@ def approval_program(recyclers):
 
 def clear_state_program():
     program = Return(Int(1))
-    # Mode.Application specifies that this is a smart contract
+
     return compileTeal(program, Mode.Application, version=6)
 
 
@@ -163,7 +160,6 @@ def create_app(client, private_key, approval_program, clear_program, global_sche
         print(err)
         return
 
-    # display results
     transaction_response = client.pending_transaction_info(tx_id)
     app_id = transaction_response['application-index']
     print("Created new app-id:", app_id)
@@ -273,6 +269,46 @@ def send_asset(algod_client, asset_id, asset_sender, asset_reciver, sender_priva
         print(err)
 
 
+def opt_in(algod_client, opt_in_account, opt_in_private_key, asset_id):
+    params = algod_client.suggested_params()
+
+    account_info = algod_client.account_info(opt_in_account)
+    holding = None
+    idx = 0
+    for my_account_info in account_info['assets']:
+        scrutinized_asset = account_info['assets'][idx]
+        idx = idx + 1
+        if (scrutinized_asset['asset-id'] == asset_id):
+            holding = True
+            break
+
+    if not holding:
+
+        # Use the AssetTransferTxn class to transfer assets and opt-in
+        txn = transaction.AssetTransferTxn(
+            sender=opt_in_account,
+            sp=params,
+            receiver=opt_in_account,
+            amt=0,
+            index=asset_id)
+        stxn = txn.sign(opt_in_private_key)
+        # Send the transaction to the network and retrieve the txid.
+        try:
+            txid = algod_client.send_transaction(stxn)
+            print("Signed transaction with txID: {}".format(txid))
+            # Wait for the transaction to be confirmed
+            confirmed_txn = transaction.wait_for_confirmation(
+                algod_client, txid, 4)
+            print("TXID: ", txid)
+            print("Result confirmed in round: {}".format(
+                confirmed_txn['confirmed-round']))
+
+        except Exception as err:
+            print(err)
+        # Now check the asset holding for that account.
+        # This should now show a holding with a balance of 0.
+
+
 def create_asset(algod_client, creator_public_key, manager_public_key, creator_private_key, asset_name, unit_name, total_supply):
     params = algod_client.suggested_params()
 
@@ -334,22 +370,40 @@ async def main():
     app_add = await get_address(app_id=app_id)
     print(app_add)
 
-    asset_id = create_asset(creator_public_key=computer_add, creator_private_key=computer_key,
-                            asset_name="KascheCoin", unit_name="KC1", algod_client=algod_client, manager_public_key=computer_add,
+    asset_id = create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
+                            asset_name="KascheCoin", unit_name="KC1", algod_client=algod_client, manager_public_key=auth_add,
                             total_supply=1)
 
-    asset_id1 = create_asset(creator_public_key=computer_add, creator_private_key=computer_key,
-                             asset_name="KascheCoin", unit_name="KC2", algod_client=algod_client, manager_public_key=computer_add,
+    asset_id1 = create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
+                             asset_name="KascheCoin", unit_name="KC2", algod_client=algod_client, manager_public_key=auth_add,
                              total_supply=1)
 
-    asset_id2 = create_asset(creator_public_key=computer_add, creator_private_key=computer_key,
-                             asset_name="KascheCoin", unit_name="KC3", algod_client=algod_client, manager_public_key=computer_add,
+    asset_id2 = create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
+                             asset_name="KascheCoin", unit_name="KC3", algod_client=algod_client, manager_public_key=auth_add,
                              total_supply=1)
+
+    opt_in(algod_client=algod_client, opt_in_account=computer_add,
+           opt_in_private_key=computer_key, asset_id=asset_id)
+    opt_in(algod_client=algod_client, opt_in_account=computer_add,
+           opt_in_private_key=computer_key, asset_id=asset_id1)
+    opt_in(algod_client=algod_client, opt_in_account=computer_add,
+           opt_in_private_key=computer_key, asset_id=asset_id2)
+
+    send_asset(algod_client=algod_client, asset_id=asset_id, asset_sender=auth_add,
+               asset_reciver=computer_add, sender_private_key=auth_key)
+
+    send_asset(algod_client=algod_client, asset_id=asset_id1, asset_sender=auth_add,
+               asset_reciver=computer_add, sender_private_key=auth_key)
+
+    send_asset(algod_client=algod_client, asset_id=asset_id2, asset_sender=auth_add,
+               asset_reciver=computer_add, sender_private_key=auth_key)
 
     algo_transaction(add=computer_add, key=computer_key,
                      reciver=app_add, amount=1000000, algod_client=algod_client)
+
     call_contract(app_id=app_id, args="Init", assets=[asset_id, asset_id1, asset_id2],
                   private_key=computer_key, public_key=computer_add)
+
     send_asset(algod_client=algod_client, asset_id=asset_id, asset_sender=computer_add,
                asset_reciver=app_add, sender_private_key=computer_key)
     send_asset(algod_client=algod_client, asset_id=asset_id1, asset_sender=computer_add,
