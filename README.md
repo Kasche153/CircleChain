@@ -14,3 +14,4 @@ There are some prerequisite for using trying the system.
 3. Check that the accounts are used have required funding if not use the Algorand testnet faucet to
    fund them.
 4. Run python3 contrat.py in the terminal standing in the sandbox folder
+5. Go to Algoexplorer.io

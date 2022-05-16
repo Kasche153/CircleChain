@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import json
+import webbrowser
 from algosdk.future import transaction
 from algosdk.future.transaction import PaymentTxn, AssetTransferTxn, AssetConfigTxn
 from algosdk import account, mnemonic, logic
@@ -369,7 +370,7 @@ async def main():
                asset_sender=app_add, sender_private_key=recycler_key)
     send_asset(algod_client=algod_client, asset_id=asset_id2, asset_reciver=computer_add,
                asset_sender=app_add, sender_private_key=recycler_key)
-
+    webbrowser.open('https://testnet.algoexplorer.io/address/' + app_add)
     return app_id
 
 
