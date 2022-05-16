@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import json
 from algosdk.future import transaction
@@ -25,14 +26,14 @@ user_key = mnemonic.to_private_key(user_mnemonic)
 recycler_key = mnemonic.to_private_key(recycler_mnemonic)
 
 
-def approval_program(recycler):
+def approval_program(recyclers):
     on_creation = Seq([
         App.globalPut(Bytes("User"), Global.zero_address()),
-        App.globalPut(Bytes("Recycler1"), Addr(recycler)),
-        App.globalPut(Bytes("Recycler2"), Addr(recycler)),
-        App.globalPut(Bytes("Recycler3"), Addr(recycler)),
-        App.globalPut(Bytes("Recycler4"), Addr(recycler)),
-        App.globalPut(Bytes("Recycler5"), Addr(recycler)),
+        App.globalPut(Bytes("Recycler1"), Addr(recyclers[0])),
+        App.globalPut(Bytes("Recycler2"), Addr(recyclers[1])),
+        App.globalPut(Bytes("Recycler3"), Addr(recyclers[2])),
+        App.globalPut(Bytes("Recycler4"), Addr(recyclers[3])),
+        App.globalPut(Bytes("Recycler5"), Addr(recyclers[4])),
         Return(Int(1))
     ])
 
@@ -88,6 +89,8 @@ def approval_program(recycler):
     set_user = Seq([App.globalPut(Bytes("User"),
                                   Txn.accounts[1]), Return(Int(1))])
 
+    Global.creator_address()
+
     handle_noop = Cond(
         [And(
             Global.group_size() == Int(1),
@@ -102,6 +105,7 @@ def approval_program(recycler):
         [And(
             Global.group_size() == Int(1),
             App.globalGet(Bytes("User")) == Global.zero_address(),
+            Txn.sender() == Global.creator_address(),
             Txn.application_args[0] == Bytes("Set user"),
 
         ), set_user],
@@ -132,28 +136,21 @@ def compile_program(client, source_code):
 
 
 def create_app(client, private_key, approval_program, clear_program, global_schema, local_schema):
-    # define sender as creator
     sender = account.address_from_private_key(private_key)
 
-    # declare on_complete as NoOp
     on_complete = transaction.OnComplete.NoOpOC.real
 
-    # get node suggested parameters
     params = client.suggested_params()
 
-    # create unsigned transaction
     txn = transaction.ApplicationCreateTxn(sender, params, on_complete,
                                            approval_program, clear_program,
                                            global_schema, local_schema)
 
-    # sign transaction
     signed_txn = txn.sign(private_key)
     tx_id = signed_txn.transaction.get_txid()
 
-    # send transaction
     client.send_transactions([signed_txn])
 
-    # wait for confirmation
     try:
         transaction_response = transaction.wait_for_confirmation(
             client, tx_id, 5)
@@ -175,7 +172,6 @@ def create_app(client, private_key, approval_program, clear_program, global_sche
 
 def deploy_new_application(algod_client, creator_private_key, compiled_teal, compiled_clear_teal):
 
-    # declare application state storage (immutable)
     local_ints = 0
     local_bytes = 0
     global_ints = 1
@@ -183,52 +179,41 @@ def deploy_new_application(algod_client, creator_private_key, compiled_teal, com
     global_schema = transaction.StateSchema(global_ints, global_bytes)
     local_schema = transaction.StateSchema(local_ints, local_bytes)
 
-    # compile program to TEAL assembly
     with open("./approval.teal", "w") as f:
         approval_program_teal = compiled_teal
         f.write(approval_program_teal)
 
-    # compile program to TEAL assembly
     with open("./clear.teal", "w") as f:
         clear_state_program_teal = compiled_clear_teal
         f.write(clear_state_program_teal)
 
-    # compile program to binary
     approval_program_compiled = compile_program(
         algod_client, approval_program_teal)
 
-    # compile program to binary
     clear_state_program_compiled = compile_program(
         algod_client, clear_state_program_teal)
 
     print("--------------------------------------------")
     print("Deploying application......")
 
-    # create new application on the blockchain
     app_id = create_app(algod_client, creator_private_key, approval_program_compiled,
                         clear_state_program_compiled, global_schema, local_schema)
 
     return app_id
 
 
-# call application
 def call_app(client, public_key, private_key, app_id, args, assets=[]):
 
-    # get node suggested parameters
     params = client.suggested_params()
 
-    # create unsigned transaction
     txn = transaction.ApplicationNoOpTxn(
         public_key, params, app_id, app_args=args, foreign_assets=assets, accounts=[user_add, recycler_add])
 
-    # sign transaction
     signed_txn = txn.sign(private_key)
     tx_id = signed_txn.transaction.get_txid()
 
-    # send transaction
     client.send_transactions([signed_txn])
 
-    # wait for confirmation
     try:
         transaction_response = transaction.wait_for_confirmation(
             client, tx_id, 4)
@@ -274,11 +259,9 @@ def send_asset(algod_client, asset_id, asset_sender, asset_reciver, sender_priva
         amt=1,
         index=asset_id)
     stxn = txn.sign(sender_private_key)
-    # Send the transaction to the network and retrieve the txid.
     try:
         txid = algod_client.send_transaction(stxn)
         print("Signed transaction with txID: {}".format(txid))
-        # Wait for the transaction to be confirmed
         confirmed_txn = transaction.wait_for_confirmation(
             algod_client, txid, 4)
         print("TXID: ", txid)
@@ -306,14 +289,11 @@ def create_asset(algod_client, creator_public_key, manager_public_key, creator_p
         url="",
         decimals=0)
 
-    # Sign with secret key of creator
     stxn = txn.sign(creator_private_key)
 
-    # Send the transaction to the network and retrieve the txid.
     try:
         txid = algod_client.send_transaction(stxn)
         print("Signed transaction with txID: {}".format(txid))
-        # Wait for the transaction to be confirmed
         confirmed_txn = transaction.wait_for_confirmation(
             algod_client, txid, 4)
         print("TXID: ", txid)
@@ -322,20 +302,12 @@ def create_asset(algod_client, creator_public_key, manager_public_key, creator_p
 
     except Exception as err:
         print(err)
-    # Retrieve the asset ID of the newly created asset by first
-    # ensuring that the creation transaction was confirmed,
-    # then grabbing the asset id from the transaction.
 
     print("Transaction information: {}".format(
         json.dumps(confirmed_txn, indent=4)))
-    # print("Decoded note: {}".format(base64.b64decode(
-    #     confirmed_txn["txn"]["txn"]["note"]).decode()))
 
     try:
-        # Pull account info for the creator
-        # account_info = algod_client.account_info(accounts[1]['pk'])
-        # get asset_id from tx
-        # Get the new asset's information from the creator account
+
         ptx = algod_client.pending_transaction_info(txid)
         asset_id = ptx["asset-index"]
 
@@ -344,50 +316,61 @@ def create_asset(algod_client, creator_public_key, manager_public_key, creator_p
         print(e)
 
 
-def main():
-    # initialize an algodClient
+async def get_address(app_id):
+    return logic.get_application_address(app_id)
+
+
+async def main():
     algod_client = algod.AlgodClient(algod_token, algod_address)
 
-    # define private keys
-    creator_private_key = get_private_key_from_mnemonic(user_mnemonic)
-
     clear_state = clear_state_program()
-    approval = approval_program(mnemonic.to_public_key(recycler_mnemonic))
+    approval = approval_program([mnemonic.to_public_key(recycler_mnemonic), mnemonic.to_public_key(recycler_mnemonic), mnemonic.to_public_key(
+        recycler_mnemonic), mnemonic.to_public_key(recycler_mnemonic), mnemonic.to_public_key(recycler_mnemonic), mnemonic.to_public_key(recycler_mnemonic)])
 
-    # # deploy application to the chain for the first time (or get fixed app_id)
     app_id = deploy_new_application(
-        algod_client, creator_private_key, approval, clear_state)
-    print(logic.get_application_address(app_id))
-    app_add = logic.get_application_address(app_id)
+        algod_client, computer_key, approval, clear_state)
+
+    app_add = await get_address(app_id=app_id)
+    print(app_add)
+
     asset_id = create_asset(creator_public_key=computer_add, creator_private_key=computer_key,
                             asset_name="KascheCoin", unit_name="KC1", algod_client=algod_client, manager_public_key=computer_add,
                             total_supply=1)
 
+    asset_id1 = create_asset(creator_public_key=computer_add, creator_private_key=computer_key,
+                             asset_name="KascheCoin", unit_name="KC2", algod_client=algod_client, manager_public_key=computer_add,
+                             total_supply=1)
+
+    asset_id2 = create_asset(creator_public_key=computer_add, creator_private_key=computer_key,
+                             asset_name="KascheCoin", unit_name="KC3", algod_client=algod_client, manager_public_key=computer_add,
+                             total_supply=1)
+
     algo_transaction(add=computer_add, key=computer_key,
                      reciver=app_add, amount=1000000, algod_client=algod_client)
-    call_contract(app_id=app_id, args="Init", assets=[asset_id],
+    call_contract(app_id=app_id, args="Init", assets=[asset_id, asset_id1, asset_id2],
                   private_key=computer_key, public_key=computer_add)
     send_asset(algod_client=algod_client, asset_id=asset_id, asset_sender=computer_add,
                asset_reciver=app_add, sender_private_key=computer_key)
-
+    send_asset(algod_client=algod_client, asset_id=asset_id1, asset_sender=computer_add,
+               asset_reciver=app_add, sender_private_key=computer_key)
+    send_asset(algod_client=algod_client, asset_id=asset_id2, asset_sender=computer_add,
+               asset_reciver=app_add, sender_private_key=computer_key)
     call_contract(app_id=app_id, args="Set user",
                   private_key=computer_key, public_key=computer_add)
+    # call_contract(app_id=app_id, args="Set user",
+    #               private_key=computer_key, public_key=computer_add)
     call_contract(app_id=app_id, args="Release",
                   public_key=user_add, private_key=user_key)
     # call_contract(app_id=app_id, args="Release",
     #               public_key=user_add, private_key=user_key)
     send_asset(algod_client=algod_client, asset_id=asset_id, asset_reciver=computer_add,
                asset_sender=app_add, sender_private_key=recycler_key)
+    send_asset(algod_client=algod_client, asset_id=asset_id1, asset_reciver=computer_add,
+               asset_sender=app_add, sender_private_key=recycler_key)
+    send_asset(algod_client=algod_client, asset_id=asset_id2, asset_reciver=computer_add,
+               asset_sender=app_add, sender_private_key=recycler_key)
 
     return app_id
-    # calling application with arguments
-    # call_app(algod_client, creator_private_key, app_id, args=["Init"])
-    # read global state of application
 
 
-main()
-
-
-# algo_transaction("3WEGUFAW4ZN7HK3L7BFOZ3LSYZLIGWBITUSIPZQLS37COW5WGBUXVQYERQ", key=mnemonic.to_private_key(
-#     auth_mnemonic), reciver=mnemonic.to_public_key(computer_mnemonic), amount=1000, algod_client=algod.AlgodClient(algod_token, algod_address)
-# )
+asyncio.run(main())

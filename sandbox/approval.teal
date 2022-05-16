@@ -79,6 +79,10 @@ app_global_get
 global ZeroAddress
 ==
 &&
+txn Sender
+global CreatorAddress
+==
+&&
 txna ApplicationArgs 0
 byte "Set user"
 ==
