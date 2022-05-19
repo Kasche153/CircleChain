@@ -10,9 +10,12 @@ from algosdk import account, mnemonic, logic
 from algosdk.v2client import algod
 from pyteal import *
 
-#127.0.0.1:8112
+#algod_address = "http://localhost:4001"
+#algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 algod_address = "http://localhost:8112"
 algod_token = "1a24068f71c751badae176443e7304ff918c802c938127a9b8e577635a87176f"
+
+
 
 # Never share mnemonic and private key. Production environments require stringent private key management.
 auth_mnemonic = "entry purity immense regular crane shiver across trumpet only soup leave monster agent biology border inherit engine cactus gate chalk beef tank resist able napkin"
