@@ -335,16 +335,16 @@ async def create_asset(algod_client, creator_public_key, manager_public_key, cre
     stxn = await sync_to_async(txn.sign)(creator_private_key)
 
     try:   
-        print('checkpoint #1 (for i-th assset: {})')
+        print('checkpoint #1 (for i-th assset: {})'.format(i))
         #txid = await algod_client.send_transaction(stxn)
         txid = await sync_to_async(algod_client.send_transaction)(stxn)
 
-        print('checkpoint #2 (for i-th assset: {})')
+        print('checkpoint #2 (for i-th assset: {})'.format(i))
         #confirmed_txn = await transaction.wait_for_confirmation(algod_client, txid, 4)
         confirmed_txn = await sync_to_async(transaction.wait_for_confirmation)(
             algod_client, txid, 4)
         
-        print('checkpoint #3 (for i-th assset: {})')
+        print('checkpoint #3 (for i-th assset: {})'.format(i))
         #print("TXID: ", txid)
         #print("Result confirmed in round: {}".format(
         #    confirmed_txn['confirmed-round']))
