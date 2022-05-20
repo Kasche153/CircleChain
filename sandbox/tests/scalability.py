@@ -317,13 +317,11 @@ def opt_in(algod_client, opt_in_account, opt_in_private_key, asset_id):
         # This should now show a holding with a balance of 0.
 
 
-async def create_asset(algod_client, creator_public_key, manager_public_key, creator_private_key, asset_name, unit_name, total_supply, i):
+async def create_asset_(algod_client, creator_public_key, manager_public_key, creator_private_key, asset_name, unit_name, total_supply, i, suggested_params):
     print('create_asset function started... (for i-th assset: {})'.format(i))
-    params = await sync_to_async(algod_client.suggested_params)()
-
     txn = await sync_to_async(AssetConfigTxn)(
         sender=creator_public_key,
-        sp=params,
+        sp=suggested_params,
         total=total_supply,
         default_frozen=False,
         unit_name=unit_name,
@@ -348,9 +346,7 @@ async def create_asset(algod_client, creator_public_key, manager_public_key, cre
             algod_client, txid, 4)
         
         print('checkpoint #3 (for i-th assset: {})'.format(i))
-        #print("TXID: ", txid)
-        #print("Result confirmed in round: {}".format(
-        #    confirmed_txn['confirmed-round']))
+
 
     except Exception as err:
         print(err)
@@ -358,7 +354,46 @@ async def create_asset(algod_client, creator_public_key, manager_public_key, cre
     #print("Transaction information: {}".format(
     #    json.dumps(confirmed_txn, indent=4)))
 
-    
+
+
+async def create_asset(algod_client, creator_public_key, manager_public_key, creator_private_key, asset_name, unit_name, total_supply, i, suggested_params):
+    print('create_asset function started... (for i-th assset: {})'.format(i))
+    txn = AssetConfigTxn(
+        sender=creator_public_key,
+        sp=suggested_params,
+        total=total_supply,
+        default_frozen=False,
+        unit_name=unit_name,
+        asset_name=asset_name,
+        manager=manager_public_key,
+        reserve=manager_public_key,
+        freeze=manager_public_key,
+        clawback=manager_public_key,
+        url="",
+        decimals=0)
+
+    stxn = await sync_to_async(txn.sign)(creator_private_key)
+
+    try:   
+        print('checkpoint #1 (for i-th assset: {})'.format(i))
+        #txid = await algod_client.send_transaction(stxn)
+        txid = algod_client.send_transaction(stxn)
+
+        print('checkpoint #2 (for i-th assset: {})'.format(i))
+        #confirmed_txn = await transaction.wait_for_confirmation(algod_client, txid, 4)
+        confirmed_txn = await sync_to_async(transaction.wait_for_confirmation)(
+            algod_client, txid, 4)
+        
+        print('checkpoint #3 (for i-th assset: {})'.format(i))
+
+
+    except Exception as err:
+        print(err)
+
+    #print("Transaction information: {}".format(
+    #    json.dumps(confirmed_txn, indent=4)))
+
+
 
 
 async def get_address(app_id):
@@ -384,17 +419,18 @@ def main():
     print('#  moj: deploy_new_application called successfully')
 
 
-    
+    suggested_params = algod_client.suggested_params()
+
     async def create_assets(assets_number):
         await asyncio.gather(*[create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
                             asset_name="CircleChain", unit_name="CC{}".format(i+1), algod_client=algod_client, manager_public_key=auth_add,
-                            total_supply=1, i=i) for i in range(assets_number)])
+                            total_supply=1, i=i, suggested_params=suggested_params) for i in range(assets_number)])
         
 
     
 
-    experiment_size = 2000
-    step_size = 200
+    experiment_size = 50
+    step_size = 10
     
     experiment_output = dict()
 
