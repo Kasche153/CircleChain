@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import json
+from pydoc import doc
 import webbrowser
 import datetime
 from asgiref.sync import sync_to_async
@@ -10,14 +11,14 @@ from algosdk import account, mnemonic, logic
 from algosdk.v2client import algod
 from pyteal import *
 
-#algod_address = "http://localhost:4001"
-#algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-algod_address = "http://localhost:8112"
-algod_token = "1a24068f71c751badae176443e7304ff918c802c938127a9b8e577635a87176f"
+algod_address = "http://localhost:4001"
+algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+# algod_address = "http://localhost:8112"
+# algod_token = "1a24068f71c751badae176443e7304ff918c802c938127a9b8e577635a87176f"
 
 
 # Never share mnemonic and private key. Production environments require stringent private key management.
-auth_mnemonic = "entry purity immense regular crane shiver across trumpet only soup leave monster agent biology border inherit engine cactus gate chalk beef tank resist able napkin"
+auth_mnemonic = "wear dose vacant crouch alpha off increase trade sight drastic firm whisper two physical arrest drip awful mask oppose prepare rally board tongue abstract letter"
 computer_mnemonic = "december giggle gown trap bread soccer sort song judge island lift black bitter ghost impulse rice actress because ribbon unusual negative lucky monster above used"
 user_mnemonic = "amused burger uphold hurt stereo holiday summer inherit believe angry token pledge chicken blush repeat patrol common hungry hello hammer humor ski coach above flight"
 recycler_mnemonic = "welcome explain vast blind praise oak fire brush wreck jazz family sweet civil dynamic dance aim arrange bachelor flower earn brother pig giant absent digital"
@@ -206,7 +207,8 @@ def deploy_new_application(algod_client, creator_private_key, compiled_teal, com
 def call_app(client, public_key, private_key, app_id, args, assets=[]):
 
     params = client.suggested_params()
-
+    print("here")
+    print(assets)
     txn = transaction.ApplicationNoOpTxn(
         public_key, params, app_id, app_args=args, foreign_assets=assets, accounts=[user_add, recycler_add])
 
@@ -343,8 +345,10 @@ async def create_asset(algod_client, creator_public_key, manager_public_key, cre
         # confirmed_txn = await transaction.wait_for_confirmation(algod_client, txid, 4)
         confirmed_txn = await sync_to_async(transaction.wait_for_confirmation)(
             algod_client, txid, 4)
+        ptx = algod_client.pending_transaction_info(txid)
 
         print('checkpoint #3 (for i-th assset: {})'.format(i))
+        return ptx["asset-index"]
         #print("TXID: ", txid)
         # print("Result confirmed in round: {}".format(
         #    confirmed_txn['confirmed-round']))
@@ -354,10 +358,6 @@ async def create_asset(algod_client, creator_public_key, manager_public_key, cre
 
     # print("Transaction information: {}".format(
     #    json.dumps(confirmed_txn, indent=4)))
-
-
-async def get_address(app_id):
-    return logic.get_application_address(app_id)
 
 
 def main():
@@ -376,36 +376,45 @@ def main():
 
     print('#  moj: deploy_new_application called successfully')
 
+    algo_transaction(add=computer_add, key=computer_key,
+                     reciver=logic.get_application_address(appID=app_id), amount=10000000, algod_client=algod_client)
+
     async def create_assets(assets_number):
-        await asyncio.gather(*[create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
-                                            asset_name="CircleChain", unit_name="CC{}".format(i+1), algod_client=algod_client, manager_public_key=auth_add,
-                                            total_supply=1, i=i) for i in range(assets_number)])
+        return await asyncio.gather(*[create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
+                                                   asset_name="CircleChain", unit_name="CC{}".format(i+1), algod_client=algod_client, manager_public_key=auth_add,
+                                                   total_supply=1, i=i) for i in range(assets_number)])
 
-    experiment_size = 2000
-    step_size = 200
-
+    experiment_size = 50
+    step_size = 10
     experiment_output = dict()
-
+    assets_ids = []
     counter = 0
+
     for i in range(int(experiment_size / step_size)):
         assets_number = (i + 1) * step_size
         start = datetime.datetime.now()
 
         print('authenticator address is: {}', auth_add)
 
-        asyncio.run(create_assets(assets_number))
+        test = asyncio.run(create_assets(assets_number))
+        assets_ids.extend(test)
+        print(test)
 
         end = datetime.datetime.now()
-
         experiment_output[assets_number] = (end - start).total_seconds()
 
         print('---------------------------------------------------------------------------------')
         print(
             '----- total amount of time spent to create {0} assets: {1}'.format(assets_number, end - start))
-
-    print('=================================================================================')
-    print('=================================================================================')
     print(experiment_output)
+    print(assets_ids)
+    print(app_id)
+    print(logic.get_application_address(app_id))
+    chunk_size = 4
+    for i in range(0, len(assets_ids), chunk_size):
+        temp = assets_ids[i:i+chunk_size]
+        call_contract(app_id=app_id, args="Init", assets=temp,
+                      private_key=computer_key, public_key=computer_add)
 
 
 main()
