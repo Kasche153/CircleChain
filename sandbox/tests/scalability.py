@@ -393,9 +393,10 @@ def main():
 
     
 
-    experiment_size = 500
-    step_size = 100
+    experiment_size = 2000
+    step_size = 200
     
+    experiment_output = dict()
 
     
     counter = 0
@@ -409,9 +410,13 @@ def main():
 
         end = datetime.datetime.now()
 
+        experiment_output[assets_number] = (end - start).total_seconds()
 
         print('---------------------------------------------------------------------------------')
         print('----- total amount of time spent to create {0} assets: {1}'.format(assets_number, end - start))
 
 
+    print('=================================================================================')
+    print('=================================================================================')
+    print(experiment_output)
 main()
