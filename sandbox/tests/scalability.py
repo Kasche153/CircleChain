@@ -16,7 +16,6 @@ algod_address = "http://localhost:8112"
 algod_token = "1a24068f71c751badae176443e7304ff918c802c938127a9b8e577635a87176f"
 
 
-
 # Never share mnemonic and private key. Production environments require stringent private key management.
 auth_mnemonic = "entry purity immense regular crane shiver across trumpet only soup leave monster agent biology border inherit engine cactus gate chalk beef tank resist able napkin"
 computer_mnemonic = "december giggle gown trap bread soccer sort song judge island lift black bitter ghost impulse rice actress because ribbon unusual negative lucky monster above used"
@@ -27,7 +26,7 @@ recycler_mnemonic = "welcome explain vast blind praise oak fire brush wreck jazz
 auth_add = mnemonic.to_public_key(auth_mnemonic)
 computer_add = mnemonic.to_public_key(computer_mnemonic)
 user_add = mnemonic.to_public_key(user_mnemonic)
-recycler_add = mnemonic.to_public_key(recycler_mnemonic)  
+recycler_add = mnemonic.to_public_key(recycler_mnemonic)
 
 auth_key = mnemonic.to_private_key(auth_mnemonic)
 computer_key = mnemonic.to_private_key(computer_mnemonic)
@@ -159,7 +158,7 @@ def create_app(client, private_key, approval_program, clear_program, global_sche
         transaction_response = transaction.wait_for_confirmation(
             client, tx_id, 5)
         #print("TXID: ", tx_id)
-        #print("Result confirmed in round: {}".format(
+        # print("Result confirmed in round: {}".format(
         #    transaction_response['confirmed-round']))
 
     except Exception as err:
@@ -189,8 +188,6 @@ def deploy_new_application(algod_client, creator_private_key, compiled_teal, com
     with open("./clear.teal", "w") as f:
         clear_state_program_teal = compiled_clear_teal
         f.write(clear_state_program_teal)
-
-
 
     approval_program_compiled = compile_program(
         algod_client, approval_program_teal)
@@ -222,7 +219,7 @@ def call_app(client, public_key, private_key, app_id, args, assets=[]):
         transaction_response = transaction.wait_for_confirmation(
             client, tx_id, 4)
         #print("TXID: ", tx_id)
-        #print("Result confirmed in round: {}".format(
+        # print("Result confirmed in round: {}".format(
         #    transaction_response['confirmed-round']))
 
     except Exception as err:
@@ -269,7 +266,7 @@ def send_asset(algod_client, asset_id, asset_sender, asset_reciver, sender_priva
         confirmed_txn = transaction.wait_for_confirmation(
             algod_client, txid, 4)
         #print("TXID: ", txid)
-        #print("Result confirmed in round: {}".format(
+        # print("Result confirmed in round: {}".format(
         #    confirmed_txn['confirmed-round']))
 
     except Exception as err:
@@ -307,8 +304,8 @@ def opt_in(algod_client, opt_in_account, opt_in_private_key, asset_id):
             confirmed_txn = transaction.wait_for_confirmation(
                 algod_client, txid, 4)
             #print("TXID: ", txid)
-            #print("Result confirmed in round: {}".format(
-            
+            # print("Result confirmed in round: {}".format(
+
             #    confirmed_txn['confirmed-round']))
 
         except Exception as err:
@@ -337,32 +334,31 @@ async def create_asset(algod_client, creator_public_key, manager_public_key, cre
 
     stxn = await sync_to_async(txn.sign)(creator_private_key)
 
-    try:   
+    try:
         print('checkpoint #1 (for i-th assset: {})'.format(i))
-        #txid = await algod_client.send_transaction(stxn)
+        # txid = await algod_client.send_transaction(stxn)
         txid = await sync_to_async(algod_client.send_transaction)(stxn)
 
         print('checkpoint #2 (for i-th assset: {})'.format(i))
-        #confirmed_txn = await transaction.wait_for_confirmation(algod_client, txid, 4)
+        # confirmed_txn = await transaction.wait_for_confirmation(algod_client, txid, 4)
         confirmed_txn = await sync_to_async(transaction.wait_for_confirmation)(
             algod_client, txid, 4)
-        
+
         print('checkpoint #3 (for i-th assset: {})'.format(i))
         #print("TXID: ", txid)
-        #print("Result confirmed in round: {}".format(
+        # print("Result confirmed in round: {}".format(
         #    confirmed_txn['confirmed-round']))
 
     except Exception as err:
         print(err)
 
-    #print("Transaction information: {}".format(
+    # print("Transaction information: {}".format(
     #    json.dumps(confirmed_txn, indent=4)))
-
-    
 
 
 async def get_address(app_id):
     return logic.get_application_address(app_id)
+
 
 def main():
     algod_client = algod.AlgodClient(algod_token, algod_address)
@@ -374,36 +370,27 @@ def main():
         recycler_mnemonic), mnemonic.to_public_key(recycler_mnemonic), mnemonic.to_public_key(recycler_mnemonic), mnemonic.to_public_key(recycler_mnemonic)])
     print('#  moj: approval_program function called successfully')
 
-
-    
     print('#  moj: computer address is: {}'.format(computer_add))
     app_id = deploy_new_application(
         algod_client, computer_key, approval, clear_state)
 
-
     print('#  moj: deploy_new_application called successfully')
 
-
-    
     async def create_assets(assets_number):
         await asyncio.gather(*[create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
-                            asset_name="CircleChain", unit_name="CC{}".format(i+1), algod_client=algod_client, manager_public_key=auth_add,
-                            total_supply=1, i=i) for i in range(assets_number)])
-        
-
-    
+                                            asset_name="CircleChain", unit_name="CC{}".format(i+1), algod_client=algod_client, manager_public_key=auth_add,
+                                            total_supply=1, i=i) for i in range(assets_number)])
 
     experiment_size = 2000
     step_size = 200
-    
+
     experiment_output = dict()
 
-    
     counter = 0
     for i in range(int(experiment_size / step_size)):
         assets_number = (i + 1) * step_size
         start = datetime.datetime.now()
-        
+
         print('authenticator address is: {}', auth_add)
 
         asyncio.run(create_assets(assets_number))
@@ -413,10 +400,12 @@ def main():
         experiment_output[assets_number] = (end - start).total_seconds()
 
         print('---------------------------------------------------------------------------------')
-        print('----- total amount of time spent to create {0} assets: {1}'.format(assets_number, end - start))
-
+        print(
+            '----- total amount of time spent to create {0} assets: {1}'.format(assets_number, end - start))
 
     print('=================================================================================')
     print('=================================================================================')
     print(experiment_output)
+
+
 main()
