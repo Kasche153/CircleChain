@@ -1,7 +1,8 @@
 import asyncio
 import base64
 import json
-from pydoc import doc
+from pydoc import cli, doc
+from turtle import pu
 import webbrowser
 import datetime
 from asgiref.sync import sync_to_async
@@ -204,14 +205,14 @@ def deploy_new_application(algod_client, creator_private_key, compiled_teal, com
     return app_id
 
 
-def call_app(client, public_key, private_key, app_id, args, assets=[]):
+async def call_app(client, public_key, private_key, app_id, args, assets=[]):
 
     params = client.suggested_params()
 
-    txn = transaction.ApplicationNoOpTxn(
+    txn = await sync_to_async(transaction.ApplicationNoOpTxn)(
         public_key, params, app_id, app_args=args, foreign_assets=assets, accounts=[user_add, recycler_add])
 
-    signed_txn = txn.sign(private_key)
+    signed_txn = await sync_to_async(txn.sign)(private_key)
     tx_id = signed_txn.transaction.get_txid()
 
     client.send_transactions([signed_txn])
@@ -386,10 +387,14 @@ def main():
     async def send_asset_list(assets, asset_sender, asset_sender_key, asset_reciever):
         return await asyncio.gather(*[send_asset(algod_client=algod_client, asset_id=x, asset_reciver=asset_reciever, asset_sender=asset_sender, sender_private_key=asset_sender_key) for x in assets])
 
-    experiment_size = 20
+    async def call_contract_list(assets, public_key, private_key, app_id, args):
+        return await asyncio.gather(*[call_app(client=algod_client, app_id=app_id, args=args, assets=x, private_key=private_key, public_key=public_key) for x in assets])
+
+    experiment_size = 10
     step_size = 10
     experiment_output = dict()
     assets_ids = []
+    assets_chunks = []
     counter = 0
     total_start = datetime.datetime.now()
 
@@ -427,22 +432,25 @@ def main():
     chunk_size = 6
     for i in range(0, len(assets_ids), chunk_size):
         temp = assets_ids[i:i+chunk_size]
+        assets_chunks.append(temp)
         print(temp)
-        call_contract(app_id=app_id, args="Init", assets=temp,
-                      private_key=computer_key, public_key=computer_add)
+        # call_app(client=algod_client, app_id=app_id, args=["Init"], assets=temp,
+        #          private_key=computer_key, public_key=computer_add)
     print("gus : checkpoint 4")
-
+    print(assets_chunks)
+    asyncio.run(call_contract_list(assets=assets_chunks, private_key=computer_key,
+                public_key=computer_add, app_id=app_id, args=["Init"]))
     asyncio.run(send_asset_list(
         assets=assets_ids,
                 asset_sender_key=computer_key, asset_sender=computer_add, asset_reciever=logic.get_application_address(app_id)))
     print("gus : checkpoint 5")
 
-    call_contract(app_id=app_id, args="Set user", assets=[],
-                  private_key=computer_key, public_key=computer_add)
+    asyncio.run(call_app(client=algod_client, app_id=app_id, args=["Set user"], assets=[],
+                         private_key=computer_key, public_key=computer_add))
     print("gus : checkpoint 6")
 
-    call_contract(app_id=app_id, args="Release", assets=[],
-                  private_key=user_key, public_key=user_add)
+    asyncio.run(call_app(client=algod_client, app_id=app_id, args=["Release"], assets=[],
+                         private_key=user_key, public_key=user_add))
     print("gus : checkpoint 7")
 
     asyncio.run(send_asset_list(
