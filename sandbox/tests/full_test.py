@@ -208,17 +208,17 @@ def deploy_new_application(algod_client, creator_private_key, compiled_teal, com
 async def call_app(client, public_key, private_key, app_id, args, assets=[]):
 
     params = client.suggested_params()
-
+    print("checkpoint one for contract")
     txn = await sync_to_async(transaction.ApplicationNoOpTxn)(
         public_key, params, app_id, app_args=args, foreign_assets=assets, accounts=[user_add, recycler_add])
 
     signed_txn = await sync_to_async(txn.sign)(private_key)
     tx_id = signed_txn.transaction.get_txid()
-
+    print("checkpoint two for contract")
     client.send_transactions([signed_txn])
 
     try:
-        transaction_response = transaction.wait_for_confirmation(
+        transaction_response = await sync_to_async(transaction.wait_for_confirmation)(
             client, tx_id, 4)
         # print("TXID: ", tx_id)
         # print("Result confirmed in round: {}".format(
@@ -374,7 +374,7 @@ def main():
     print('#  moj: deploy_new_application called successfully')
 
     algo_transaction(add=computer_add, key=computer_key,
-                     reciver=logic.get_application_address(appID=app_id), amount=10000000, algod_client=algod_client)
+                     reciver=logic.get_application_address(appID=app_id), amount=20000000, algod_client=algod_client)
 
     async def create_assets(assets_number):
         return await asyncio.gather(*[create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
@@ -390,7 +390,7 @@ def main():
     async def call_contract_list(assets, public_key, private_key, app_id, args):
         return await asyncio.gather(*[call_app(client=algod_client, app_id=app_id, args=args, assets=x, private_key=private_key, public_key=public_key) for x in assets])
 
-    experiment_size = 10
+    experiment_size = 40
     step_size = 10
     experiment_output = dict()
     assets_ids = []
