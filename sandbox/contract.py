@@ -8,7 +8,7 @@ from algosdk import account, mnemonic, logic
 from algosdk.v2client import algod
 from pyteal import *
 
-#127.0.0.1:8112
+# 127.0.0.1:8112
 algod_address = "http://localhost:8112"
 algod_token = "1a24068f71c751badae176443e7304ff918c802c938127a9b8e577635a87176f"
 
@@ -22,7 +22,7 @@ recycler_mnemonic = "welcome explain vast blind praise oak fire brush wreck jazz
 auth_add = mnemonic.to_public_key(auth_mnemonic)
 computer_add = mnemonic.to_public_key(computer_mnemonic)
 user_add = mnemonic.to_public_key(user_mnemonic)
-recycler_add = mnemonic.to_public_key(recycler_mnemonic)  
+recycler_add = mnemonic.to_public_key(recycler_mnemonic)
 
 auth_key = mnemonic.to_private_key(auth_mnemonic)
 computer_key = mnemonic.to_private_key(computer_mnemonic)
@@ -89,8 +89,6 @@ def approval_program(recyclers):
     set_user = Seq([App.globalPut(Bytes("User"),
                                   Txn.accounts[1]), Return(Int(1))])
 
-    Global.creator_address()
-
     handle_noop = Cond(
         [And(
             Global.group_size() == Int(1),
@@ -154,7 +152,7 @@ def create_app(client, private_key, approval_program, clear_program, global_sche
         transaction_response = transaction.wait_for_confirmation(
             client, tx_id, 5)
         #print("TXID: ", tx_id)
-        #print("Result confirmed in round: {}".format(
+        # print("Result confirmed in round: {}".format(
         #    transaction_response['confirmed-round']))
 
     except Exception as err:
@@ -184,8 +182,6 @@ def deploy_new_application(algod_client, creator_private_key, compiled_teal, com
     with open("./clear.teal", "w") as f:
         clear_state_program_teal = compiled_clear_teal
         f.write(clear_state_program_teal)
-
-
 
     approval_program_compiled = compile_program(
         algod_client, approval_program_teal)
@@ -217,7 +213,7 @@ def call_app(client, public_key, private_key, app_id, args, assets=[]):
         transaction_response = transaction.wait_for_confirmation(
             client, tx_id, 4)
         #print("TXID: ", tx_id)
-        #print("Result confirmed in round: {}".format(
+        # print("Result confirmed in round: {}".format(
         #    transaction_response['confirmed-round']))
 
     except Exception as err:
@@ -264,7 +260,7 @@ def send_asset(algod_client, asset_id, asset_sender, asset_reciver, sender_priva
         confirmed_txn = transaction.wait_for_confirmation(
             algod_client, txid, 4)
         #print("TXID: ", txid)
-        #print("Result confirmed in round: {}".format(
+        # print("Result confirmed in round: {}".format(
         #    confirmed_txn['confirmed-round']))
 
     except Exception as err:
@@ -302,8 +298,8 @@ def opt_in(algod_client, opt_in_account, opt_in_private_key, asset_id):
             confirmed_txn = transaction.wait_for_confirmation(
                 algod_client, txid, 4)
             #print("TXID: ", txid)
-            #print("Result confirmed in round: {}".format(
-            
+            # print("Result confirmed in round: {}".format(
+
             #    confirmed_txn['confirmed-round']))
 
         except Exception as err:
@@ -337,13 +333,13 @@ def create_asset(algod_client, creator_public_key, manager_public_key, creator_p
         confirmed_txn = transaction.wait_for_confirmation(
             algod_client, txid, 4)
         #print("TXID: ", txid)
-        #print("Result confirmed in round: {}".format(
+        # print("Result confirmed in round: {}".format(
         #    confirmed_txn['confirmed-round']))
 
     except Exception as err:
         print(err)
 
-    #print("Transaction information: {}".format(
+    # print("Transaction information: {}".format(
     #    json.dumps(confirmed_txn, indent=4)))
 
     try:
@@ -392,12 +388,11 @@ async def main():
                              total_supply=1)
     print('#  moj: created asset with id: {}'.format(asset_id2))
 
-
     print('#  computer company is opting in ...')
     opt_in(algod_client=algod_client, opt_in_account=computer_add,
            opt_in_private_key=computer_key, asset_id=asset_id)
     print('#  moj: opt-in called successfully for asset id: {}'.format(asset_id))
-    
+
     opt_in(algod_client=algod_client, opt_in_account=computer_add,
            opt_in_private_key=computer_key, asset_id=asset_id1)
     print('#  moj: opt-in called successfully for asset id: {}'.format(asset_id1))
@@ -405,8 +400,6 @@ async def main():
     opt_in(algod_client=algod_client, opt_in_account=computer_add,
            opt_in_private_key=computer_key, asset_id=asset_id2)
     print('#  moj: opt-in called successfully for asset id: {}'.format(asset_id2))
-
-
 
     print('#  moj: sending assets from authenticator to computer company...')
     send_asset(algod_client=algod_client, asset_id=asset_id, asset_sender=auth_add,
@@ -428,7 +421,6 @@ async def main():
     call_contract(app_id=app_id, args="Init", assets=[asset_id, asset_id1, asset_id2],
                   private_key=computer_key, public_key=computer_add)
     print('#  moj: call_contract called successfully')
-
 
     print('#  moj: sending assets from computer company to application!')
     print('#  moj: asset 1')
@@ -453,7 +445,6 @@ async def main():
     # call_contract(app_id=app_id, args="Release",
     #               public_key=user_add, private_key=user_key)
 
-
     print('#  moj: sending assets from application to computer company, signed by recycler')
     send_asset(algod_client=algod_client, asset_id=asset_id, asset_reciver=computer_add,
                asset_sender=app_add, sender_private_key=recycler_key)
@@ -465,12 +456,10 @@ async def main():
                asset_sender=app_add, sender_private_key=recycler_key)
     print('#  moj: asset 3')
 
-    print("----------------------------------------------------------")           
+    print("----------------------------------------------------------")
     print("app_address: {}".format(app_add))
     webbrowser.open('https://testnet.algoexplorer.io/address/' + app_add)
     return app_id
 
 
 asyncio.run(main())
-
-
