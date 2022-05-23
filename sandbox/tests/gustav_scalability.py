@@ -386,7 +386,7 @@ def main():
     async def send_asset_list(assets, asset_sender, asset_sender_key, asset_reciever):
         return await asyncio.gather(*[send_asset(algod_client=algod_client, asset_id=x, asset_reciver=asset_reciever, asset_sender=asset_sender, sender_private_key=asset_sender_key) for x in assets])
 
-    experiment_size = 20
+    experiment_size = 30
     step_size = 10
     experiment_output = dict()
     assets_ids = []
