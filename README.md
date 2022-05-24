@@ -4,19 +4,20 @@
 In a circular economy, tracking the flow of second-life components for quality control is critical. Tokenization can enhance the transparency of the flow of second-life components. However, simple tokenization does not correspond to real economic models and lacks the ability to finely manage complex business processes. In particular, existing systems have to take into account the different roles of the parties in the supply chain. Based on the Algorand blockchain, we propose a role-based token management scheme, which can achieve authentication, synthesis, circulation, and reuse of these second-life components in a trustless environment. The proposed scheme not only achieves fine-grained and scalable second-life component management, but also enables on-chain trading, subsidies, and green-bond issuance. Furthermore, we implemented and performed scalability tests for the proposed architecture on Algorand blockchain using its smart contracts and Algorand Standard Assets (ASA). The open-source implementation, tests, along with results are available on our Github page. 
 [![arXiv](https://img.shields.io/badge/arXiv-2205.11212-blue.svg)](https://arxiv.org/abs/2205.11212)
 
-## Cite us
- @book{
-   circlechain22, 
-   title={CircleChain: Tokenizing Products with a Role-based Scheme for a Circular Economy}, 
-   url={http://arxiv.org/abs/2205.11212}, DOI={10.48550/arXiv.2205.11212}, 
-   abstractNote={In a circular economy, tracking the flow of second-life components for quality control is critical. Tokenization can enhance the transparency of the flow of second-life components. However, simple tokenization does not correspond to real economic models and lacks the ability to finely manage complex business processes. In particular, existing systems have to take into account the different roles of the parties in the supply chain. Based on the Algorand blockchain, we propose a role-based token management scheme, which can achieve authentication, synthesis, circulation, and reuse of these second-life components in a trustless environment. The proposed scheme not only achieves fine-grained and scalable second-life component management, but also enables on-chain trading, subsidies, and green-bond issuance. Furthermore, we implemented and performed scalability tests for the proposed architecture on Algorand blockchain using its smart contracts and Algorand Standard Assets (ASA). The open-source implementation, tests, along with results are available on our Github page.},      
-   number={arXiv:2205.11212}, 
-   institution={arXiv}, 
-   author={Eshghie, Mojtaba and Quan, Li and Kasche, Gustav Andersson and Jacobson, Filip and Bassi, Cosimo and Artho, Cyrille}, 
-   year={2022},
-   month={May} 
-}
+### Cite us
 
+```
+     @book{
+       circlechain22, 
+       title={CircleChain: Tokenizing Products with a Role-based Scheme for a Circular Economy}, 
+       url={http://arxiv.org/abs/2205.11212}, DOI={10.48550/arXiv.2205.11212},    
+       number={arXiv:2205.11212}, 
+       institution={arXiv}, 
+       author={Eshghie, Mojtaba and Quan, Li and Kasche, Gustav Andersson and Jacobson, Filip and Bassi, Cosimo and Artho, Cyrille}, 
+       year={2022},
+       month={May} 
+    }
+```
 
 ### WHAT IS THIS
 
