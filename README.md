@@ -20,13 +20,13 @@ In a circular economy, tracking the flow of second-life components for quality c
     }
 ```
 
-### WHAT IS THIS
+### What is this?
 
 This is a first implementation of life cycle tracing system (in the context of a circular economy / CE)  built on the Algorand Blockchain
 It is implemented to for potentiall use in chip tracing in the IT sector but could potentially be used in other industries as well.
 It has been tested using the Algorand Testnet.
 
-### HOW TO TRY IT
+### How to try it?
 
 There are some prerequisite for using trying the system.
 
@@ -37,7 +37,7 @@ There are some prerequisite for using trying the system.
 4. Run python3 contrat.py in the terminal standing in the sandbox folder
 5. Read the transaction history of the application accounts on the Algoexplorer.io you been redirected to
 
-### HOW IT WORKS
+### How it works?
 
 1. The contract is created and deployed to the Testnet
 2. The contract is funded with 1 Algo from its creator
