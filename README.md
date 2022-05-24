@@ -8,16 +8,24 @@ In a circular economy, tracking the flow of second-life components for quality c
 ### Cite us
 
 ```
-     @book{
-       circlechain22, 
-       title={CircleChain: Tokenizing Products with a Role-based Scheme for a Circular Economy}, 
-       url={http://arxiv.org/abs/2205.11212}, DOI={10.48550/arXiv.2205.11212},    
-       number={arXiv:2205.11212}, 
-       institution={arXiv}, 
-       author={Eshghie, Mojtaba and Quan, Li and Kasche, Gustav Andersson and Jacobson, Filip and Bassi, Cosimo and Artho, Cyrille}, 
-       year={2022},
-       month={May} 
-    }
+@misc{https://doi.org/10.48550/arxiv.2205.11212,
+  doi = {10.48550/ARXIV.2205.11212},
+  
+  url = {https://arxiv.org/abs/2205.11212},
+  
+  author = {Eshghie, Mojtaba and Quan, Li and Kasche, Gustav Andersson and Jacobson, Filip and Bassi, Cosimo and Artho, Cyrille},
+  
+  keywords = {Distributed, Parallel, and Cluster Computing (cs.DC), Cryptography and Security (cs.CR), Computers and Society (cs.CY), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  
+  title = {CircleChain: Tokenizing Products with a Role-based Scheme for a Circular Economy},
+  
+  publisher = {arXiv},
+  
+  year = {2022},
+  
+  copyright = {Creative Commons Attribution 4.0 International}
+}
+
 ```
 
 ### What is this?
