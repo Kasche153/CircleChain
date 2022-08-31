@@ -409,12 +409,6 @@ def main():
     print(experiment_output)
     print(assets_ids)
     print(app_id)
-    print(logic.get_application_address(app_id))
-    chunk_size = 4
-    for i in range(0, len(assets_ids), chunk_size):
-        temp = assets_ids[i:i+chunk_size]
-        call_contract(app_id=app_id, args="Init", assets=temp,
-                      private_key=computer_key, public_key=computer_add)
 
 
 main()

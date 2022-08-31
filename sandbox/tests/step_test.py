@@ -1,22 +1,28 @@
 import asyncio
 import base64
 import json
+from pydoc import cli, doc
+from turtle import pu
 import webbrowser
+import datetime
+from asgiref.sync import sync_to_async
 from algosdk.future import transaction
 from algosdk.future.transaction import PaymentTxn, AssetTransferTxn, AssetConfigTxn
 from algosdk import account, mnemonic, logic
 from algosdk.v2client import algod
 from pyteal import *
 
-# 127.0.0.1:8112
 algod_address = "http://localhost:4001"
 algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+# algod_address = "http://localhost:8112"
+# algod_token = "1a24068f71c751badae176443e7304ff918c802c938127a9b8e577635a87176f"
+
 
 # Never share mnemonic and private key. Production environments require stringent private key management.
-auth_mnemonic = "entry purity immense regular crane shiver across trumpet only soup leave monster agent biology border inherit engine cactus gate chalk beef tank resist able napkin"
-computer_mnemonic = "december giggle gown trap bread soccer sort song judge island lift black bitter ghost impulse rice actress because ribbon unusual negative lucky monster above used"
-user_mnemonic = "amused burger uphold hurt stereo holiday summer inherit believe angry token pledge chicken blush repeat patrol common hungry hello hammer humor ski coach above flight"
-recycler_mnemonic = "welcome explain vast blind praise oak fire brush wreck jazz family sweet civil dynamic dance aim arrange bachelor flower earn brother pig giant absent digital"
+auth_mnemonic = "century lend memory push detect office stone section depart shoot bridge decide powder wreck mosquito ready talent friend edit please ridge ridge bread abstract tip"
+computer_mnemonic = "van worth skirt seed stereo where tell school garlic soup gloom legend light pond fresh hamster hospital sudden pet afford monster veteran law abstract grocery"
+user_mnemonic = "tell timber scorpion material horror sweet loop erupt bonus grace slice conduct history sausage unable cliff right frozen pistol fault squeeze work basic absorb spell"
+recycler_mnemonic = "ill visual despair industry lizard shoe forum lecture draft half motor discover satoshi gaze mango vehicle immense collect across comfort lumber globe card abstract submit"
 
 
 auth_add = mnemonic.to_public_key(auth_mnemonic)
@@ -152,7 +158,7 @@ def create_app(client, private_key, approval_program, clear_program, global_sche
     try:
         transaction_response = transaction.wait_for_confirmation(
             client, tx_id, 5)
-        #print("TXID: ", tx_id)
+        # print("TXID: ", tx_id)
         # print("Result confirmed in round: {}".format(
         #    transaction_response['confirmed-round']))
 
@@ -198,29 +204,29 @@ def deploy_new_application(algod_client, creator_private_key, compiled_teal, com
     return app_id
 
 
-def call_app(client, public_key, private_key, app_id, args, assets=[]):
+async def call_app(client, public_key, private_key, app_id, args, assets=[]):
 
     params = client.suggested_params()
-
-    txn = transaction.ApplicationNoOpTxn(
+    print("checkpoint one for contract")
+    txn = await sync_to_async(transaction.ApplicationNoOpTxn)(
         public_key, params, app_id, app_args=args, foreign_assets=assets, accounts=[user_add, recycler_add])
 
-    signed_txn = txn.sign(private_key)
+    signed_txn = await sync_to_async(txn.sign)(private_key)
     tx_id = signed_txn.transaction.get_txid()
-
+    print("checkpoint two for contract")
     client.send_transactions([signed_txn])
 
     try:
-        transaction_response = transaction.wait_for_confirmation(
+        transaction_response = await sync_to_async(transaction.wait_for_confirmation)(
             client, tx_id, 4)
-        #print("TXID: ", tx_id)
+        # print("TXID: ", tx_id)
         # print("Result confirmed in round: {}".format(
         #    transaction_response['confirmed-round']))
 
     except Exception as err:
         print(err)
         return
-    #print("Application called")
+    # print("Application called")
 
 
 def get_private_key_from_mnemonic(mn):
@@ -245,22 +251,20 @@ def call_contract(app_id, args, private_key, public_key, assets=[]):
              private_key=private_key, args=[args], assets=assets)
 
 
-def send_asset(algod_client, asset_id, asset_sender, asset_reciver, sender_private_key):
+async def send_asset(algod_client, asset_id, asset_sender, asset_reciver, sender_private_key):
     params = algod_client.suggested_params()
-
-    txn = AssetTransferTxn(
+    txn = await sync_to_async(AssetTransferTxn)(
         sender=asset_sender,
         sp=params,
         receiver=asset_reciver,
         amt=1,
         index=asset_id)
-    stxn = txn.sign(sender_private_key)
+    stxn = await sync_to_async(txn.sign)(sender_private_key)
     try:
-        txid = algod_client.send_transaction(stxn)
-        #print("Signed transaction with txID: {}".format(txid))
-        confirmed_txn = transaction.wait_for_confirmation(
+        txid = await sync_to_async(algod_client.send_transaction)(stxn)
+        await sync_to_async(transaction.wait_for_confirmation)(
             algod_client, txid, 4)
-        #print("TXID: ", txid)
+        # print("TXID: ", txid)
         # print("Result confirmed in round: {}".format(
         #    confirmed_txn['confirmed-round']))
 
@@ -268,7 +272,7 @@ def send_asset(algod_client, asset_id, asset_sender, asset_reciver, sender_priva
         print(err)
 
 
-def opt_in(algod_client, opt_in_account, opt_in_private_key, asset_id):
+async def opt_in(algod_client, opt_in_account, opt_in_private_key, asset_id):
     params = algod_client.suggested_params()
 
     account_info = algod_client.account_info(opt_in_account)
@@ -284,21 +288,21 @@ def opt_in(algod_client, opt_in_account, opt_in_private_key, asset_id):
     if not holding:
 
         # Use the AssetTransferTxn class to transfer assets and opt-in
-        txn = transaction.AssetTransferTxn(
+        txn = await sync_to_async(transaction.AssetTransferTxn)(
             sender=opt_in_account,
             sp=params,
             receiver=opt_in_account,
             amt=0,
             index=asset_id)
-        stxn = txn.sign(opt_in_private_key)
+        stxn = await sync_to_async(txn.sign)(opt_in_private_key)
         # Send the transaction to the network and retrieve the txid.
         try:
             txid = algod_client.send_transaction(stxn)
-            #print("Signed transaction with txID: {}".format(txid))
+            # print("Signed transaction with txID: {}".format(txid))
             # Wait for the transaction to be confirmed
-            confirmed_txn = transaction.wait_for_confirmation(
+            confirmed_txn = await sync_to_async(transaction.wait_for_confirmation)(
                 algod_client, txid, 4)
-            #print("TXID: ", txid)
+            # print("TXID: ", txid)
             # print("Result confirmed in round: {}".format(
 
             #    confirmed_txn['confirmed-round']))
@@ -309,10 +313,11 @@ def opt_in(algod_client, opt_in_account, opt_in_private_key, asset_id):
         # This should now show a holding with a balance of 0.
 
 
-def create_asset(algod_client, creator_public_key, manager_public_key, creator_private_key, asset_name, unit_name, total_supply):
-    params = algod_client.suggested_params()
+async def create_asset(algod_client, creator_public_key, manager_public_key, creator_private_key, asset_name, unit_name, total_supply, i):
+    print('create_asset function started... (for i-th assset: {})'.format(i))
+    params = await sync_to_async(algod_client.suggested_params)()
 
-    txn = AssetConfigTxn(
+    txn = await sync_to_async(AssetConfigTxn)(
         sender=creator_public_key,
         sp=params,
         total=total_supply,
@@ -326,14 +331,22 @@ def create_asset(algod_client, creator_public_key, manager_public_key, creator_p
         url="",
         decimals=0)
 
-    stxn = txn.sign(creator_private_key)
+    stxn = await sync_to_async(txn.sign)(creator_private_key)
 
     try:
-        txid = algod_client.send_transaction(stxn)
-        #print("Signed transaction with txID: {}".format(txid))
-        confirmed_txn = transaction.wait_for_confirmation(
+        print('checkpoint #1 (for i-th assset: {})'.format(i))
+        # txid = await algod_client.send_transaction(stxn)
+        txid = await sync_to_async(algod_client.send_transaction)(stxn)
+
+        print('checkpoint #2 (for i-th assset: {})'.format(i))
+        # confirmed_txn = await transaction.wait_for_confirmation(algod_client, txid, 4)
+        confirmed_txn = await sync_to_async(transaction.wait_for_confirmation)(
             algod_client, txid, 4)
-        #print("TXID: ", txid)
+        ptx = algod_client.pending_transaction_info(txid)
+
+        print('checkpoint #3 (for i-th assset: {})'.format(i))
+        return ptx["asset-index"]
+        # print("TXID: ", txid)
         # print("Result confirmed in round: {}".format(
         #    confirmed_txn['confirmed-round']))
 
@@ -343,124 +356,126 @@ def create_asset(algod_client, creator_public_key, manager_public_key, creator_p
     # print("Transaction information: {}".format(
     #    json.dumps(confirmed_txn, indent=4)))
 
-    try:
 
-        ptx = algod_client.pending_transaction_info(txid)
-        asset_id = ptx["asset-index"]
-
-        return asset_id
-    except Exception as e:
-        print(e)
-
-
-async def get_address(app_id):
-    return logic.get_application_address(app_id)
-
-
-async def main():
+def main():
     algod_client = algod.AlgodClient(algod_token, algod_address)
-
     clear_state = clear_state_program()
-    print('#: clear_state called successfully')
+    print('#  moj: clear_state function called successfully')
 
     approval = approval_program([mnemonic.to_public_key(recycler_mnemonic), mnemonic.to_public_key(recycler_mnemonic), mnemonic.to_public_key(
         recycler_mnemonic), mnemonic.to_public_key(recycler_mnemonic), mnemonic.to_public_key(recycler_mnemonic), mnemonic.to_public_key(recycler_mnemonic)])
-    print('#: approval_program called successfully')
+    print('#  moj: approval_program function called successfully')
 
-    app_id = deploy_new_application(
-        algod_client, computer_key, approval, clear_state)
-    print('#: deploy_new_application called successfully')
+    async def create_assets(assets_number):
+        return await asyncio.gather(*[create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
+                                                   asset_name="CircleChain", unit_name="CC{}".format(i+1), algod_client=algod_client, manager_public_key=auth_add,
+                                                   total_supply=1, i=i) for i in range(assets_number)])
 
-    app_add = await get_address(app_id=app_id)
-    print('#: app address: {}'.format(app_add))
+    async def opt_in_list(assets, opt_in_accout, opt_in_key):
+        return await asyncio.gather(*[opt_in(algod_client=algod_client, asset_id=x, opt_in_account=opt_in_accout, opt_in_private_key=opt_in_key) for x in assets])
 
-    asset_id = create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
-                            asset_name="KascheCoin", unit_name="KC1", algod_client=algod_client, manager_public_key=auth_add,
-                            total_supply=1)
-    print('#: created asset with id: {}'.format(asset_id))
+    async def send_asset_list(assets, asset_sender, asset_sender_key, asset_reciever):
+        return await asyncio.gather(*[send_asset(algod_client=algod_client, asset_id=x, asset_reciver=asset_reciever, asset_sender=asset_sender, sender_private_key=asset_sender_key) for x in assets])
 
-    asset_id1 = create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
-                             asset_name="KascheCoin", unit_name="KC2", algod_client=algod_client, manager_public_key=auth_add,
-                             total_supply=1)
-    print('#: created asset with id: {}'.format(asset_id1))
+    async def call_contract_list(assets, public_key, private_key, app_id, args):
+        print(assets)
 
-    asset_id2 = create_asset(creator_public_key=auth_add, creator_private_key=auth_key,
-                             asset_name="KascheCoin", unit_name="KC3", algod_client=algod_client, manager_public_key=auth_add,
-                             total_supply=1)
-    print('#: created asset with id: {}'.format(asset_id2))
+        return await asyncio.gather(*[call_app(client=algod_client, app_id=app_id, args=args, assets=x, private_key=private_key, public_key=public_key) for x in assets])
 
-    print('#  computer company is opting in ...')
-    opt_in(algod_client=algod_client, opt_in_account=computer_add,
-           opt_in_private_key=computer_key, asset_id=asset_id)
-    print('#: opt-in called successfully for asset id: {}'.format(asset_id))
+    experiment_size = 30
+    step_size = 10
+    experiment_output = dict()
+    asset_collections = []
+    counter = 0
+    application_adds = []
+    total_start = datetime.datetime.now()
 
-    opt_in(algod_client=algod_client, opt_in_account=computer_add,
-           opt_in_private_key=computer_key, asset_id=asset_id1)
-    print('#: opt-in called successfully for asset id: {}'.format(asset_id1))
+    for i in range(int(experiment_size / step_size)):
+        assets_number = (i + 1) * step_size
+        start = datetime.datetime.now()
 
-    opt_in(algod_client=algod_client, opt_in_account=computer_add,
-           opt_in_private_key=computer_key, asset_id=asset_id2)
-    print('#: opt-in called successfully for asset id: {}'.format(asset_id2))
+        print('authenticator address is: {}', auth_add)
 
-    print('#: sending assets from authenticator to computer company...')
-    send_asset(algod_client=algod_client, asset_id=asset_id, asset_sender=auth_add,
-               asset_reciver=computer_add, sender_private_key=auth_key)
-    print('#: send_asset called successfully for asset id: {}'.format(asset_id))
+        test = asyncio.run(create_assets(assets_number))
+        asset_collections.append(test)
+        print(test)
 
-    send_asset(algod_client=algod_client, asset_id=asset_id1, asset_sender=auth_add,
-               asset_reciver=computer_add, sender_private_key=auth_key)
-    print('#: send_asset called successfully for asset id: {}'.format(asset_id1))
+        end = datetime.datetime.now()
+        experiment_output[assets_number] = (end - start).total_seconds()
 
-    send_asset(algod_client=algod_client, asset_id=asset_id2, asset_sender=auth_add,
-               asset_reciver=computer_add, sender_private_key=auth_key)
-    print('#: send_asset called successfully for asset id: {}'.format(asset_id2))
+        print('---------------------------------------------------------------------------------')
+        print(
+            '----- total amount of time spent to create {0} assets: {1}'.format(assets_number, end - start))
+    print(experiment_output)
+    print(asset_collections)
 
-    algo_transaction(add=computer_add, key=computer_key,
-                     reciver=app_add, amount=1000000, algod_client=algod_client)
-    print('#: algo_transaction called successfully')
+    for i in asset_collections:
+        total_start = datetime.datetime.now()
 
-    call_contract(app_id=app_id, args="Init", assets=[asset_id, asset_id1, asset_id2],
-                  private_key=computer_key, public_key=computer_add)
-    print('#: call_contract called successfully')
+        assets_chunks = []
+        print('#  moj: computer address is: {}'.format(computer_add))
+        app_id = deploy_new_application(
+            algod_client, computer_key, approval, clear_state)
 
-    print('#: sending assets from computer company to application!')
-    print('#: asset 1')
-    send_asset(algod_client=algod_client, asset_id=asset_id, asset_sender=computer_add,
-               asset_reciver=app_add, sender_private_key=computer_key)
-    print('#: asset 2')
-    send_asset(algod_client=algod_client, asset_id=asset_id1, asset_sender=computer_add,
-               asset_reciver=app_add, sender_private_key=computer_key)
-    print('#: asset 3')
-    send_asset(algod_client=algod_client, asset_id=asset_id2, asset_sender=computer_add,
-               asset_reciver=app_add, sender_private_key=computer_key)
+        print('#  moj: deploy_new_application called successfully')
 
-    print('#: setting the user...(via a contract all to app id) ')
-    call_contract(app_id=app_id, args="Set user",
-                  private_key=computer_key, public_key=computer_add)
-    # call_contract(app_id=app_id, args="Set user",
-    #               private_key=computer_key, public_key=computer_add)
+        algo_transaction(add=computer_add, key=computer_key,
+                         reciver=logic.get_application_address(appID=app_id), amount=10000000, algod_client=algod_client)
+        print(app_id)
+        print(logic.get_application_address(app_id))
+        print("gus : checkpoint 1")
 
-    print('#: releasing ... (releasing what???), (via a contract call to app id) ')
-    call_contract(app_id=app_id, args="Release",
-                  public_key=user_add, private_key=user_key)
-    # call_contract(app_id=app_id, args="Release",
-    #               public_key=user_add, private_key=user_key)
+        asyncio.run(opt_in_list(assets=i,
+                                opt_in_accout=computer_add, opt_in_key=computer_key))
 
-    print('#: sending assets from application to computer company, signed by recycler')
-    send_asset(algod_client=algod_client, asset_id=asset_id, asset_reciver=computer_add,
-               asset_sender=app_add, sender_private_key=recycler_key)
-    print('#: asset 1')
-    send_asset(algod_client=algod_client, asset_id=asset_id1, asset_reciver=computer_add,
-               asset_sender=app_add, sender_private_key=recycler_key)
-    print('#: asset 2')
-    send_asset(algod_client=algod_client, asset_id=asset_id2, asset_reciver=computer_add,
-               asset_sender=app_add, sender_private_key=recycler_key)
-    print('#: asset 3')
+        print("gus : checkpoint 1")
 
-    print("----------------------------------------------------------")
-    print("app_address: {}".format(app_add))
-    # webbrowser.open('https://testnet.algoexplorer.io/address/' + app_add)
-    return app_id
+        asyncio.run(opt_in_list(assets=i,
+                    opt_in_accout=computer_add, opt_in_key=computer_key))
+        print("gus : checkpoint 2")
+
+        asyncio.run(send_asset_list(asset_sender=auth_add,
+                    asset_sender_key=auth_key, assets=i, asset_reciever=computer_add))
+
+        print("gus : checkpoint 3")
+
+        chunk_size = 6
+        for j in range(0, len(i), chunk_size):
+            temp = i[j:j+chunk_size]
+            assets_chunks.append(temp)
+            print(temp)
+
+        print("gus : checkpoint 4")
+        print(assets_chunks)
+        asyncio.run(call_contract_list(assets=assets_chunks, private_key=computer_key,
+                    public_key=computer_add, app_id=app_id, args=["Init"]))
+
+        print("gus : checkpoint 4b")
+
+        asyncio.run(send_asset_list(
+            assets=i,
+                    asset_sender_key=computer_key, asset_sender=computer_add, asset_reciever=logic.get_application_address(app_id)))
+    # print("gus : checkpoint 5")
+
+        asyncio.run(call_app(client=algod_client, app_id=app_id, args=["Set user"], assets=[],
+                             private_key=computer_key, public_key=computer_add))
+        print("gus : checkpoint 6")
+
+        asyncio.run(call_app(client=algod_client, app_id=app_id, args=["Release"], assets=[],
+                             private_key=user_key, public_key=user_add))
+        print("gus : checkpoint 7")
+
+        asyncio.run(send_asset_list(
+            assets=i,
+            asset_reciever=auth_add, asset_sender_key=recycler_key, asset_sender=logic.get_application_address(app_id)))
+
+        total_end = datetime.datetime.now()
+        print((total_end-total_start).total_seconds())
+
+    # print('---------------------------------------------------------------------------------')
+    # print(
+    #     '----- Circle time:')
+    # print((total_end - total_start).total_seconds())
 
 
-asyncio.run(main())
+main()

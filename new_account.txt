@@ -1,21 +1,17 @@
-
 Auth
-My address: TNMUPUQB7MQIDG5AFJMCNTCFRNQSWEPDWDB7JMJT6ENNTWYT77SQZLURIU
-My private key: XL9iYh5kmZ6u0tmte1X4kldNYdZXTZLtie5P5XaGJBqbWUfSAfsggZugKlgmzEWLYSsR47DD9LEz8RrZ2xP/5Q==
-My passphrase: twist memory couple draft crazy police nice supply interest field label junior one obscure salt essence rather chicken warrior female universe canoe spell abandon once
-
+My address: MHB6DN2HI7ZSGKXC46YBFPJLWJLGGOLYOQGQVYQLVSN2DTRHUSIGRKNAXU
+My private key: K/nfFes6HmbKusLWobE3jJPU+APSsus+14xmylzmbuNhw+G3R0fzIyri57ASvSuyVmM5eHQNCuILrJuhziekkA==
+My passphrase: century lend memory push detect office stone section depart shoot bridge decide powder wreck mosquito ready talent friend edit please ridge ridge bread abstract tip
 
 Computer
-My address: B3NS7VIVU3KFOCDQ7STBRGTQ5LQD5K7UB3M3EZJJBJYVVTLJ2KSV66IZZ4
-My private key: oHeIjefob2KQ42VDvvmq4VE3gb0NZZMz6Xs9uDZt3YgO2y/VFabUVwhw/KYYmnDq4D6r9A7ZsmUpCnFazWnSpQ==
-My passphrase: village canyon short mobile thank blush broken grass silent tragic step bulk huge gate hospital govern include pill sadness long hope forget eight above voice
-
+My address: 6HZ2BMNKIBL3TKJ2GTNU7HQTGNSY5HGYWLAKHWMAKHQDQNDPIM6CPX5BGY
+My private key: iX9/lS/Maunb28D++vPG+MdAn5qraG8j9kZHoMfMv+/x86CxqkBXuak6NNtPnhMzZY6c2LLAo9mAUeA4NG9DPA==
+My passphrase: van worth skirt seed stereo where tell school garlic soup gloom legend light pond fresh hamster hospital sudden pet afford monster veteran law abstract grocery
 
 User
-My address: ANNEVLITNCCIH6R4PVXTXJBHKBT5LNA7NIMDW3I3M3XPWW4HRFJEQHQB5Q
-My private key: 9o54go/Ytm5/8EzLWNmW7RK2/or9Ks5t10o/xWn2Y8IDWkqtE2iEg/o8fW87pCdQZ9W0H2oYO20bZu77W4eJUg==
-My passphrase: tell timber scorpion material horror sweet loop erupt bonus grace slice conduct history sausage unable cliff right frozen pistol fault squeeze work basic absorb spell
-
+My address: VCVZ35727BIL2GU64W3EKHL4TOD22DSNMPXX2DAJ5WFC5TGKS3OWYB7LIM
+My private key: qR4asmDfMXBE3JGQrMZHvBg1JSc6nrzX3nJe3f0o3hOoq533+vhQvRqe5bZFHXybh60OTWPvfQwJ7YouzMqW3Q==
+My passphrase: steel half flip voyage glove bright timber mushroom must boy catalog mesh health sing spell owner wasp kitten defense sting wing mechanic page abandon rice
 
 Recycler
 My address: CHYIZCSUGUMB7NBRSN2QUWPYNAQPJKEXKTFI4KBTUT22LL73ZMC77NI7RM

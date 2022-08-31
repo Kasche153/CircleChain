@@ -28,6 +28,10 @@ main_l7:
 global GroupSize
 int 1
 ==
+txn Sender
+global CreatorAddress
+==
+&&
 txna ApplicationArgs 0
 byte "Init"
 ==

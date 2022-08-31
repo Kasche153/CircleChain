@@ -20,7 +20,7 @@ algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 # Never share mnemonic and private key. Production environments require stringent private key management.
 auth_mnemonic = "twist memory couple draft crazy police nice supply interest field label junior one obscure salt essence rather chicken warrior female universe canoe spell abandon once"
 computer_mnemonic = "village canyon short mobile thank blush broken grass silent tragic step bulk huge gate hospital govern include pill sadness long hope forget eight above voice"
-user_mnemonic = "tell timber scorpion material horror sweet loop erupt bonus grace slice conduct history sausage unable cliff right frozen pistol fault squeeze work basic absorb spell"
+user_mnemonic = "steel half flip voyage glove bright timber mushroom must boy catalog mesh health sing spell owner wasp kitten defense sting wing mechanic page abandon rice"
 recycler_mnemonic = "ill visual despair industry lizard shoe forum lecture draft half motor discover satoshi gaze mango vehicle immense collect across comfort lumber globe card abstract submit"
 
 
